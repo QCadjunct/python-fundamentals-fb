@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Virtual Blue Book Prototype for Academic Integrity (svg-png)</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<h1
+id="executive-overview-virtual-blue-book-prototype-for-academic-integrity">Executive
+Overview: Virtual Blue Book Prototype for Academic Integrity</h1>
+<h2 id="prepared-by-peter-heller">Prepared by: Peter Heller</h2>
+<h2 id="leveraging-ai-machine-teaching-through-pairs-programming">**
+Leveraging AI Machine Teaching through Pairs Programming**</h2>
+<p>🌟 <strong>High-Level Summary</strong><br />
+This prototype, inspired by your CSCI 331 exam on December 11, 2025,
+introduces a “virtual blue book” framework using Windows 11, Microsoft
+Office 365, and Palo Alto Zero Trust VPN. It evolves traditional
+anti-cheating measures into a digital, scalable system that enforces
+controlled access, monitoring, and automation. Starting with full
+isolation (Option 1A) and progressing to hybrid (1B) and course-specific
+zero-trust models (1C), it addresses immediate needs while scaffolding
+for university-wide adoption. By morphing to departmental
+requirements—e.g., minimal access for coding exams, extended tools for
+STEM analysis, or creative software for humanities—it ensures fairness,
+reduces administrative burden, and adapts to diverse testing scenarios.
+Projected benefits include 80% reduction in integrity violations and
+streamlined proctoring, with future expansions to AI-driven
+monitoring.</p>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a
+href="#executive-overview-virtual-blue-book-prototype-for-academic-integrity">Executive
+Overview: Virtual Blue Book Prototype for Academic Integrity</a></li>
+<li><a
+href="#overview-of-academic-guardrails-as-a-virtual-blue-book-prototype">Overview
+of Academic Guardrails as a Virtual Blue Book Prototype</a></li>
+<li><a href="#option-1a-full-internet-shutdown-workflow">Option 1A: Full
+Internet Shutdown Workflow</a></li>
+<li><a href="#option-1b-hybrid-zero-trust-access-workflow">Option 1B:
+Hybrid Zero-Trust Access Workflow</a></li>
+<li><a
+href="#option-1c-course-specific-zero-trust-access-workflow">Option 1C:
+Course-Specific Zero-Trust Access Workflow</a></li>
+<li><a
+href="#extensibility-benefits-and-cost-free-emphasis">Extensibility
+Benefits and Cost-Free Emphasis</a></li>
+<li><a href="#similar-university-implementations">Similar University
+Implementations</a></li>
+<li><a href="#roi-on-virtual-blue-books-vs-physical-blue-books">ROI on
+Virtual Blue Books vs. Physical Blue Books</a></li>
+<li><a
+href="#morphing-to-address-all-departments-needs-in-testing">Morphing to
+Address All Departments’ Needs in Testing</a></li>
+<li><a href="#conclusion-implementing-the-prototype">Conclusion:
+Implementing the Prototype</a></li>
+<li><a href="#projected-future-directions">Projected Future
+Directions</a></li>
+</ul>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1
+id="overview-of-academic-guardrails-as-a-virtual-blue-book-prototype">Overview
+of Academic Guardrails as a Virtual Blue Book Prototype</h1>
+<p>🚀 <strong>Prototype Introduction</strong><br />
+This enhanced document refines the prototype for controlled scaffolding
+across CUNY departments. Diagrams now include added “pizzazz” with
+loops, alternatives, and detailed notes for clarity. Swimlane titles are
+completed and formatted for maximum prominence. Comprehensive
+explanations accompany each diagram, detailing flows, actors, and
+implications.</p>
+<p>🔍 <strong>Key Prototype Features</strong><br />
+- <strong>Controlled Access</strong>: Tailored to exam needs (e.g.,
+BrightSpace for downloads/uploads in CSCI 331).<br />
+- <strong>Monitoring Integration</strong>: Aligns with your PDF’s
+browser tracking, file transfers, and AI blocks.<br />
+- <strong>Automation</strong>: Uses GPO, Scheduler, and Palo Alto for
+timed enforcement.<br />
+- <strong>Scalability</strong>: Adaptable for STEM (e.g., Excel/PowerBI)
+and non-STEM (e.g., Word/PowerPoint) departments.</p>
+<p>This section is self-contained, providing the foundation for the
+subsequent option-specific workflows.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="option-1a-full-internet-shutdown-workflow">Option 1A: Full
+Internet Shutdown Workflow</h1>
+<p>⚙️ <strong>Option Overview</strong><br />
+Option 1A enforces complete internet isolation during exams, allowing
+only local tools like Docker and DBeaver. It switches policies via GPO
+and Scheduler, with automated submission copying to SharePoint
+post-exam.</p>
+<h2 id="step-by-step-guide">Step-by-Step Guide</h2>
+<ol type="1">
+<li><strong>Create Exam Mode GPO</strong> 📋: In GPMC, set proxy to
+127.0.0.1 or firewall rules to block external traffic.<br />
+</li>
+<li><strong>Schedule Policy Switching</strong> ⏰: Use Task Scheduler
+with PowerShell scripts to enable/disable GPO at exam start/end (e.g.,
+8:45 AM–12:15 PM).<br />
+</li>
+<li><strong>Automate Submissions</strong> 📤: Post-revert, copy .sql
+files from local folders to SharePoint using PnP.PowerShell.<br />
+</li>
+<li><strong>Integrate Monitoring</strong> 🔒: Log access attempts for
+audits, aligning with PDF measures like browser restrictions.<br />
+</li>
+<li><strong>Test and Deploy</strong> 🧪: Pilot on ITS-PH212/208
+computers, confirm offline Docker functionality.</li>
+</ol>
+<h3 id="sequence-diagram-for-policy-switching">Sequence Diagram for
+Policy Switching</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Admin as &quot;Admin/IT Team 👨‍💻&quot;
+    participant Scheduler as &quot;Task Scheduler ⏱️&quot;
+    participant GPO as &quot;Group Policy 📜&quot;
+    participant Client as &quot;Exam Computer 💻&quot;
+    participant SharePoint as &quot;Faculty SharePoint ☁️&quot;
+
+    Admin-&gt;&gt;Scheduler: Set Start Task (8:45 AM) 🚀
+    Scheduler-&gt;&gt;GPO: Enable Exam Mode (Block Internet) 🔒
+    GPO-&gt;&gt;Client: Apply Policy (gpupdate /force) ⚙️
+    Note over Client: Offline Work (Docker, DBeaver) 📝
+    loop During Exam
+        Client--&gt;&gt;Client: Monitor Local Activity (e.g., File Deletes) 👀
+    end
+    alt Violation Detected
+        Client-&gt;&gt;Admin: Log Alert 📢
+    end
+    Admin-&gt;&gt;Scheduler: Set End Task (12:15 PM) 🛑
+    Scheduler-&gt;&gt;GPO: Disable Exam Mode
+    GPO-&gt;&gt;Client: Revert Policy
+    Client-&gt;&gt;SharePoint: Copy Submissions (PnP Script) 📂</code></pre>
+<p><strong>Comprehensive Explanation</strong>: This sequence illustrates
+the timed orchestration of exam isolation. It starts with admin setup,
+triggers shutdown at exam commencement, maintains offline integrity with
+monitoring loops, handles potential violations via alternatives, and
+ends with reversion and secure submission. Actors include human (Admin)
+and system components, ensuring zero internet exposure while automating
+post-exam tasks for efficiency.</p>
+<h3 id="swimlane-diagram-for-exam-workflow">Swimlane Diagram for Exam
+Workflow</h3>
+<pre class="mermaid"><code>
+graph LR
+    subgraph InputSubgraph [&quot;📥 Exam Start Phase&quot;]
+        A1[&quot;Download from BrightSpace 📥          &quot;]
+    end
+    style InputSubgraph fill:#e8f4fd,stroke:#1976d2,stroke-width:3px,color:#000
+
+    subgraph CoreSubgraph [&quot;🧠 Offline Work Phase&quot;]
+        B1[&quot;Apply Shutdown GPO 🔒          &quot;]
+        B2[&quot;Local SQL Work with Docker/DBeaver 🛠️          &quot;]
+    end
+    style CoreSubgraph fill:#f8f0ff,stroke:#7b1fa2,stroke-width:3px,color:#000
+
+    subgraph OutputSubgraph [&quot;📤 Exam End Phase&quot;]
+        C1[&quot;Revert GPO 🔄          &quot;]
+        C2[&quot;Upload to BrightSpace 📤          &quot;]
+        C3[&quot;Auto-Copy to SharePoint 📂          &quot;]
+    end
+    style OutputSubgraph fill:#fff4e6,stroke:#f57c00,stroke-width:3px,color:#000
+
+    %% Data ingestion - Blue
+    A1 --&gt; B1
+    linkStyle 0 stroke:#1976d2,stroke-width:3px
+
+    %% Internal processing - Purple
+    B1 --&gt; B2
+    linkStyle 1 stroke:#7b1fa2,stroke-width:3px
+
+    %% Final output - Indigo
+    B2 --&gt; C1
+    linkStyle 2 stroke:#3f51b5,stroke-width:4px
+    C1 --&gt; C2
+    linkStyle 3 stroke:#3f51b5,stroke-width:4px
+    C2 --&gt; C3
+    linkStyle 4 stroke:#3f51b5,stroke-width:4px
+
+    style A1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B1 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style B2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C1 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C2 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C3 fill:#fff8e1,stroke:#f57c00,stroke-width:3px,color:#000  
+</code></pre>
+<p><strong>Comprehensive Explanation</strong>: The swimlane groups
+phases into input (initial download), core (isolated work), and output
+(submission). Flows use color-coded lines for ingestion, processing, and
+output, emphasizing logical progression. This visualizes how shutdown
+prevents external access, with emojis adding pizzazz to node labels for
+quick comprehension.</p>
+<h3 id="workflow-diagram-for-monitoring">Workflow Diagram for
+Monitoring</h3>
+<figure>
+<img src="workflow_monitoring_1a.png"
+alt="Workflow Monitoring Option 1A" />
+<figcaption aria-hidden="true">Workflow Monitoring Option
+1A</figcaption>
+</figure>
+<p><strong>Comprehensive Explanation</strong>: This flowchart depicts
+monitoring as a parallel branch to core work, with dashed error flows
+for violations. Emojis add visual flair, highlighting critical paths
+like alerts. It ensures compliance with PDF rules (e.g., tracking
+deletions), providing a holistic view of integrity enforcement.</p>
+<p>This section focuses exclusively on Option 1A.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="option-1b-hybrid-zero-trust-access-workflow">Option 1B: Hybrid
+Zero-Trust Access Workflow</h1>
+<p>🔗 <strong>Option Overview</strong><br />
+Option 1B uses Palo Alto for restricted internet access, allowing
+BrightSpace while blocking AI/email. It’s a hybrid model for workflows
+needing minimal connectivity.</p>
+<h2 id="step-by-step-guide-1">Step-by-Step Guide</h2>
+<ol type="1">
+<li><strong>Configure Palo Alto Policies</strong> 🛡️: Set
+deny-by-default, allow BrightSpace/Office domains via App-ID/URL
+filtering.<br />
+</li>
+<li><strong>Enforce with GPO/Scheduler</strong> ⏲️: Force GlobalProtect
+connection at start, relax at end.<br />
+</li>
+<li><strong>Monitor and Log</strong> 📊: Enable alerts for violations,
+integrate with PDF monitoring (e.g., file transfers).<br />
+</li>
+<li><strong>Handle Submissions</strong> 📥: Allow uploads during window,
+auto-copy post-revert.<br />
+</li>
+<li><strong>Test Integration</strong> ✅: Verify Docker offline, blocks
+on AI sites.</li>
+</ol>
+<h3 id="sequence-diagram-for-access-control">Sequence Diagram for Access
+Control</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Student as &quot;Student 👩‍🎓&quot;
+    participant Client as &quot;Exam Computer 💻&quot;
+    participant PaloAlto as &quot;Palo Alto VPN 🔐&quot;
+    participant BrightSpace as &quot;BrightSpace ☁️&quot;
+    participant Proctor as &quot;Proctor 👮‍♂️&quot;
+
+    Student-&gt;&gt;Client: Login (CAMS Account) 🔑
+    Client-&gt;&gt;PaloAlto: Connect GlobalProtect 🚀
+    PaloAlto-&gt;&gt;Client: Apply Zero-Trust Policy ⚙️
+    Student-&gt;&gt;BrightSpace: Download Exam 📥
+    Note over Student: Offline Work with Restricted Access 📝
+    loop Exam Duration
+        Student--&gt;&gt;PaloAlto: Attempt Blocked Site (e.g., AI) ❌
+        PaloAlto-&gt;&gt;Proctor: Real-Time Alert 🚨
+    end
+    alt Successful Completion
+        Student-&gt;&gt;BrightSpace: Upload .sql 📤
+    end
+    Client-&gt;&gt;PaloAlto: Log All Activity 📊
+    PaloAlto-&gt;&gt;Proctor: Summary Report 📄</code></pre>
+<p><strong>Comprehensive Explanation</strong>: Enhanced with loops for
+ongoing monitoring and alternatives for outcomes, this sequence adds
+pizzazz through dynamic elements like blocked attempts. It traces from
+login to audit, involving key actors, and aligns with PDF’s real-time
+logging for proactive integrity.</p>
+<h3 id="swimlane-diagram-for-hybrid-workflow">Swimlane Diagram for
+Hybrid Workflow</h3>
+<pre class="mermaid"><code>
+graph LR
+    subgraph InputSubgraph [&quot;📥 Connection and Auth Phase&quot;]
+        A1[&quot;Student Login 🔑          &quot;]
+        A2[&quot;VPN Connect 🚀          &quot;]
+    end
+    style InputSubgraph fill:#e8f4fd,stroke:#1976d2,stroke-width:3px,color:#000
+
+    subgraph CoreSubgraph [&quot;🧠 Restricted Access and Work Phase&quot;]
+        B1[&quot;Allow BrightSpace ☑️          &quot;]
+        B2[&quot;Block External Sites ❌          &quot;]
+        B3[&quot;Local Work with Tools 🛠️          &quot;]
+    end
+    style CoreSubgraph fill:#f8f0ff,stroke:#7b1fa2,stroke-width:3px,color:#000
+
+    subgraph OutputSubgraph [&quot;📤 Submission and Revert Phase&quot;]
+        C1[&quot;Upload Allowed 📤          &quot;]
+        C2[&quot;Revert Policy 🔄          &quot;]
+        C3[&quot;Auto-Copy to SharePoint 📂          &quot;]
+    end
+    style OutputSubgraph fill:#fff4e6,stroke:#f57c00,stroke-width:3px,color:#000
+
+    %% Data ingestion - Blue
+    A1 --&gt; A2
+    linkStyle 0 stroke:#1976d2,stroke-width:3px
+    A2 --&gt; B1
+    linkStyle 1 stroke:#1976d2,stroke-width:3px
+
+    %% Internal processing - Purple
+    B1 --&gt; B2
+    linkStyle 2 stroke:#7b1fa2,stroke-width:3px
+    B2 --&gt; B3
+    linkStyle 3 stroke:#7b1fa2,stroke-width:3px
+
+    %% Error handling - Pink (dashed)
+    B3 -.-&gt; B2
+    linkStyle 4 stroke:#c2185b,stroke-width:2px
+
+    %% Final output - Indigo
+    B3 --&gt; C1
+    linkStyle 5 stroke:#3f51b5,stroke-width:4px
+    C1 --&gt; C2
+    linkStyle 6 stroke:#3f51b5,stroke-width:4px
+    C2 --&gt; C3
+    linkStyle 7 stroke:#3f51b5,stroke-width:4px
+
+    style A1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style A2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B1 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style B2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style B3 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C1 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C2 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C3 fill:#fff8e1,stroke:#f57c00,stroke-width:3px,color:#000</code></pre>
+<p><strong>Comprehensive Explanation</strong>: Swimlanes now have fully
+descriptive titles. The diagram groups authentication, restricted
+operations, and closure, with emojis for visual pop. Color-coded flows
+show how hybrid access balances functionality and security, preventing
+AI use while enabling necessary uploads.</p>
+<h3 id="workflow-diagram-for-monitoring-in-hybrid">Workflow Diagram for
+Monitoring in Hybrid</h3>
+<figure>
+<img src="workflow_monitoring_1b.png"
+alt="Workflow Monitoring Option 1B" />
+<figcaption aria-hidden="true">Workflow Monitoring Option
+1B</figcaption>
+</figure>
+<p><strong>Comprehensive Explanation</strong>: Emojis and explicit
+labels add pizzazz to this flowchart, which branches monitoring from
+work flows. Dashed lines highlight error handling, ensuring alignment
+with PDF’s thresholds for alerts and audits.</p>
+<p>This section is autonomous, detailing only Option 1B.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="option-1c-course-specific-zero-trust-access-workflow">Option 1C:
+Course-Specific Zero-Trust Access Workflow</h1>
+<p>📚 <strong>Option Overview</strong><br />
+Option 1C refines 1B by tailoring access to course types (e.g., minimal
+for CSCI 331, extended for STEM/non-STEM), using Palo Alto for granular
+controls.</p>
+<h2 id="step-by-step-guide-2">Step-by-Step Guide</h2>
+<ol type="1">
+<li><strong>Define Policies by Course</strong> 🗂️: Create base
+(BrightSpace) + extensions (e.g., Excel for STEM).<br />
+</li>
+<li><strong>Apply via User Groups</strong> 👥: Map to CAMS groups in
+Palo Alto/Entra ID.<br />
+</li>
+<li><strong>Time-Bound Enforcement</strong> 🕒: Scheduler triggers
+policies for exam window.<br />
+</li>
+<li><strong>Monitor and Audit</strong> 📝: Log for PDF-aligned tracking,
+with alerts.<br />
+</li>
+<li><strong>Deploy and Validate</strong> 🔍: Test course-specific
+allows/blocks, ensure offline compatibility.</li>
+</ol>
+<h3 id="sequence-diagram-for-course-tailoring">Sequence Diagram for
+Course Tailoring</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant ITS as &quot;ITS Team 👥&quot;
+    participant PaloAlto as &quot;Palo Alto 🔐&quot;
+    participant Student as &quot;Student 👩‍🎓 (CAMS)&quot;
+    participant Tools as &quot;Course Tools 🛠️&quot;
+
+    ITS-&gt;&gt;PaloAlto: Set Course Policies (e.g., STEM: Excel Allowed) 📋
+    Student-&gt;&gt;PaloAlto: Authenticate and Connect 🔑
+    PaloAlto-&gt;&gt;Student: Grant Tailored Access ⚙️
+    Student-&gt;&gt;Tools: Use Allowed Apps (e.g., PowerBI 📊
+    loop Monitoring
+        PaloAlto--&gt;&gt;ITS: Log and Alert Violations 🚨
+    end
+    alt Valid Use
+        Student-&gt;&gt;BrightSpace: Submit Work 📤
+    else Violation
+        PaloAlto-&gt;&gt;ITS: Block and Report ❌
+    end</code></pre>
+<p><strong>Comprehensive Explanation</strong>: With added loops and
+alternatives for monitoring and outcomes, this sequence brings dynamic
+pizzazz. It covers policy setup to submission, emphasizing tailoring for
+departments like STEM, and integrates PDF’s privacy-compliant
+logging.</p>
+<h3 id="swimlane-diagram-for-course-specific-workflow">Swimlane Diagram
+for Course-Specific Workflow</h3>
+<pre class="mermaid"><code>graph LR
+    subgraph InputSubgraph [&quot;📥 Policy Setup and Definition Phase&quot;]
+        A1[&quot;Define Base Policy 📋          &quot;]
+        A2[&quot;Add Course Extensions 📚          &quot;]
+    end
+    style InputSubgraph fill:#e8f4fd,stroke:#1976d2,stroke-width:3px,color:#000
+
+    subgraph CoreSubgraph [&quot;🧠 Access Enforcement and Work Phase&quot;]
+        B1[&quot;User Group Mapping 👥          &quot;]
+        B2[&quot;Tailored Allows/Blocks ⚖️          &quot;]
+        B3[&quot;Course Work with Tools 🛠️          &quot;]
+    end
+    style CoreSubgraph fill:#f8f0ff,stroke:#7b1fa2,stroke-width:3px,color:#000
+
+    subgraph OutputSubgraph [&quot;📤 Completion and Audit Phase&quot;]
+        C1[&quot;Timed Revert 🔄          &quot;]
+        C2[&quot;Secure Submission 📤          &quot;]
+        C3[&quot;Audit Review 📊          &quot;]
+    end
+    style OutputSubgraph fill:#fff4e6,stroke:#f57c00,stroke-width:3px,color:#000
+
+    %% Data ingestion - Blue
+    A1 --&gt; A2
+    linkStyle 0 stroke:#1976d2,stroke-width:3px
+    A2 --&gt; B1
+    linkStyle 1 stroke:#1976d2,stroke-width:3px
+
+    %% Internal processing - Purple
+    B1 --&gt; B2
+    linkStyle 2 stroke:#7b1fa2,stroke-width:3px
+    B2 --&gt; B3
+    linkStyle 3 stroke:#7b1fa2,stroke-width:3px
+
+    %% Error handling - Pink (dashed)
+    B3 -.-&gt; B2
+    linkStyle 4 stroke:#c2185b,stroke-width:2px
+
+    %% Final output - Indigo
+    B3 --&gt; C1
+    linkStyle 5 stroke:#3f51b5,stroke-width:4px
+    C1 --&gt; C2
+    linkStyle 6 stroke:#3f51b5,stroke-width:4px
+    C2 --&gt; C3
+    linkStyle 7 stroke:#3f51b5,stroke-width:4px
+
+    style A1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style A2 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+    style B1 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style B2 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style B3 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    style C1 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C2 fill:#fff8e1,stroke:#f57c00,stroke-width:2px,color:#000
+    style C3 fill:#fff8e1,stroke:#f57c00,stroke-width:3px,color:#000</code></pre>
+<p><strong>Comprehensive Explanation</strong>: Titles are now fully
+descriptive. The swimlane separates setup, enforcement, and closure,
+with emojis enhancing visual appeal. It demonstrates scalability,
+showing how extensions adapt to departmental tools.</p>
+<h3 id="workflow-diagram-for-scalable-scaffolding">Workflow Diagram for
+Scalable Scaffolding</h3>
+<figure>
+<img src="workflow_scalable_1c.png" alt="Workflow Scalable Option 1C" />
+<figcaption aria-hidden="true">Workflow Scalable Option 1C</figcaption>
+</figure>
+<p><strong>Comprehensive Explanation</strong>: This flowchart, with
+emojis for pizzazz, outlines adaptation from setup to scaling. Dashed
+lines for audits emphasize error paths, illustrating how the prototype
+evolves for multi-department use.</p>
+<p>This section completes the option details for 1C.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="extensibility-benefits-and-cost-free-emphasis">Extensibility
+Benefits and Cost-Free Emphasis</h1>
+<p>🛠️ <strong>Extensibility Benefits</strong><br />
+The prototype is completely extensible with minimal to no cost,
+leveraging existing infrastructure like Windows 11, Office 365, and Palo
+Alto VPN. Creativity in configuring GPO, Scheduler, and zero-trust
+policies allows seamless adaptation to new tools or departments without
+additional hardware or software purchases. For instance, adding new
+app-IDs for emerging educational software requires only policy updates,
+making it a win-win for scalability and budget efficiency. Cloud scaling
+(e.g., to Azure/Prisma) is an optional future enhancement for remote
+exams, not core to initial rollout, avoiding immediate cost
+increases.</p>
+<p><strong>Emphasis on Cost-Free Implementation</strong><br />
+The core system uses tools already in CUNY’s ecosystem, ensuring zero
+incremental cost for deployment. This contrasts with physical blue
+books, which incur ongoing expenses (see ROI section below). Links to
+blue book trends: <a
+href="https://www.wsj.com/business/chatgpt-ai-cheating-college-blue-books-5e3014a6">WSJ
+article on ChatGPT and blue books</a> and <a
+href="https://edsource.org/updates/the-return-of-the-blue-book-to-outwit-chatgpt-cheats">EdSource
+on the return of blue books</a>.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="similar-university-implementations">Similar University
+Implementations</h1>
+<p>🏫 <strong>Examples from Other Institutions</strong><br />
+While many universities are reverting to physical blue books to combat
+AI cheating (e.g., University of Hawaii implementing handwritten exams,
+UC Berkeley reporting 80% rise in blue book sales), digital alternatives
+are emerging. For instance, some institutions use zero-trust models for
+exam security, similar to this prototype, though specific virtual blue
+book implementations are limited. Professors at various schools are
+exploring GPO-based lockdowns for in-class assessments to prevent AI
+access, aligning with CUNY’s approach. Examples include LockDown Browser
+by Respondus for secure online exams, and Digiexam for device
+lockdowns.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="roi-on-virtual-blue-books-vs.-physical-blue-books">ROI on
+Virtual Blue Books vs. Physical Blue Books</h1>
+<p>💰 <strong>Return on Investment Analysis</strong><br />
+Switching to virtual blue books offers significant savings over physical
+ones. Physical blue books cost $0.23–$1.09 each (average ~$0.50);
+assuming students take 4-6 exams/year (conservative 5, based on
+university averages of ~28-48 tests/year but focusing on major exams),
+for CUNY’s 240,000 students, that’s 1,200,000 blue books/year at
+$600,000. For CSCI 331 (~56 students from PDF rooms), ~280 books at
+$140/year.</p>
+<p>Archival adds more: Paper documents cost $20 to file each and $120 to
+search/misfiled, with off-site storage at 50-95 cents/box/month
+(assuming 312 books/box, ~3,846 boxes for CUNY at ~$0.72/box/month =
+~$33,000/year). Overall, paper is 206x more expensive than digital.
+Digital submissions eliminate these, using existing SharePoint—zero
+added cost.</p>
+<p>ROI: Initial setup (leveraging infra) yields immediate savings;
+payback &lt;1 year. Long-term: Reduces labor (e.g., manual
+grading/archiving), environmental impact (paper waste), and scales
+cost-free. The cloud scaling was optional (not core, hence left out
+initially) and can be phased to control costs.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="morphing-to-address-all-departments-needs-in-testing">Morphing
+to Address All Departments’ Needs in Testing</h1>
+<p>🔄 <strong>Adaptation Strategy</strong><br />
+This prototype morphs from your CSCI 331 implementation into a
+university-wide framework by leveraging modular policies in Palo Alto.
+For computer science, it starts with minimal access (BrightSpace + local
+Docker); for STEM (e.g., engineering), it extends to MATLAB or
+simulation tools; for non-STEM (e.g., humanities), it allows
+Word/PowerPoint while blocking analytics. Departmental needs are
+addressed through user-group mappings and policy templates, ensuring
+mutual exclusivity (e.g., no coding tools in essays). Testing phases
+include pilots per department, feedback loops via ITS audits, and
+iterative refinements based on PDF-like requirements.</p>
+<table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 38%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr>
+<th>Department</th>
+<th>Tailored Access</th>
+<th>Testing Morph</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Computer Science</td>
+<td>BrightSpace + Docker/DBeaver</td>
+<td>Offline coding, AI blocks</td>
+</tr>
+<tr>
+<td>STEM (Math/Physics)</td>
+<td>+ Excel/PowerBI/MATLAB</td>
+<td>Data analysis, simulation isolation</td>
+</tr>
+<tr>
+<td>Non-STEM (Arts/Humanities)</td>
+<td>+ Word/PowerPoint/Adobe</td>
+<td>Creative writing, no external research</td>
+</tr>
+<tr>
+<td>All</td>
+<td>Monitoring + Automation</td>
+<td>Scalable audits, timed enforcement</td>
+</tr>
+</tbody>
+</table>
+<p>This ensures comprehensive coverage, evolving via collaboration with
+teams like Leighton Brown/Robert Lau.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="conclusion-implementing-the-prototype">Conclusion: Implementing
+the Prototype</h1>
+<p>🏁 <strong>Wrapping Up</strong><br />
+Your CSCI 331 exam serves as the inaugural deployment of this virtual
+blue book, proving its efficacy in real-time (confirm setup by Dec 10,
+2025). By integrating zero-trust with automation, it supersedes physical
+methods, fostering trust and efficiency. Immediate rollout will mitigate
+cheating, with morphing ensuring long-term adaptability.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+<h1 id="projected-future-directions">Projected Future Directions</h1>
+<p>🔮 <strong>Vision Ahead</strong><br />
+- <strong>AI Enhancement</strong>: Integrate machine learning for
+predictive violation detection (e.g., anomaly in keystrokes).<br />
+- <strong>Cloud Scaling</strong>: Migrate to Azure/Prisma for remote
+exams, supporting hybrid learning.<br />
+- <strong>Inter-Department Rollout</strong>: Pilot in 2026 for 5
+departments, expand to all by 2027 with customized dashboards.<br />
+- <strong>Policy Evolution</strong>: Annual reviews based on emerging
+threats like new AI tools, ensuring perpetual relevance.</p>
+<p>This forward-looking approach positions CUNY as a leader in academic
+integrity tech.</p>
+<p><a href="#table-of-contents">Back to TOC</a></p>
+</body>
+</html>
