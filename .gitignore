@@ -8,3 +8,6 @@ __marimo__/
 # Large data files — source from source_notebooks/ or external download
 data/morningstar_eu_funds.csv
 data/transactions.csv
+
+# Ignore exercise output CSV modifications
+data/*.csv
