@@ -1,2 +1,0 @@
-data/morningstar_eu_funds.csv filter=lfs diff=lfs merge=lfs -text
-data/transactions.csv filter=lfs diff=lfs merge=lfs -text
