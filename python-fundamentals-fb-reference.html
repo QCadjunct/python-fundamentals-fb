@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>python-fundamentals-fb — Developer Reference</title>
+<style>
+  :root {
+    --vs: #0078d4; --vs-bg: #1e3a5f; --vs-light: #dbeafe; --vs-dark: #1e3a5f;
+    --git: #f05133; --git-bg: #4a1a0a; --git-light: #fde8e0; --git-dark: #4a1a0a;
+    --gh: #238636;  --gh-bg: #0d3320;  --gh-light: #dcfce7;  --gh-dark: #0d3320;
+    --syn: #c7922a; --syn-bg: #3d2800; --syn-light: #fef3c7; --syn-dark: #3d2800;
+    --uv: #7c3aed;  --uv-bg: #2e1a4f;  --uv-light: #ede9fe;  --uv-dark: #2e1a4f;
+    --mar: #0891b2; --mar-bg: #0a2535; --mar-light: #cffafe; --mar-dark: #0a2535;
+    --bg: #f8f7f5; --surface: #ffffff; --border: #e5e3de; --border2: #d1cfc8;
+    --text: #1a1918; --text2: #5c5a55; --text3: #8c8a84;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 1rem 0; }
+  .main { flex: 1; padding: 2rem; max-width: 900px; }
+
+  /* ── Sidebar ── */
+  .sidebar-logo { padding: .5rem 1rem 1rem; }
+  .sidebar-logo .repo-name { font-size: 12px; font-weight: 600; color: var(--text); font-family: 'Consolas', monospace; }
+  .sidebar-logo .repo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); padding: .75rem 1rem .25rem; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: .45rem 1rem; font-size: 13px; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all .15s; text-decoration: none; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--bg); color: var(--text); border-left-color: var(--vs); font-weight: 500; }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .nd-vs { background: var(--vs); }
+  .nd-git { background: var(--git); }
+  .nd-gh { background: var(--gh); }
+  .nd-syn { background: var(--syn); }
+  .nd-uv { background: var(--uv); }
+  .nd-mar { background: var(--mar); }
+  .nd-gray { background: #999; }
+
+  /* ── Sections ── */
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-header { margin-bottom: 1.5rem; }
+  .section-header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+  .section-header p { font-size: 14px; color: var(--text2); margin-top: .25rem; }
+
+  /* ── Cards ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: .75rem; display: flex; align-items: center; gap: 8px; }
+  .card-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .card-half { flex: 1; min-width: 240px; }
+
+  /* ── Badges / Chips ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .b-vs  { background: var(--vs-light);  color: #1d4ed8; }
+  .b-git { background: var(--git-light); color: #9a1e05; }
+  .b-gh  { background: var(--gh-light);  color: #14532d; }
+  .b-syn { background: var(--syn-light); color: #78350f; }
+  .b-uv  { background: var(--uv-light);  color: #4c1d95; }
+  .b-mar { background: var(--mar-light); color: #164e63; }
+  .b-ok  { background: #dcfce7; color: #14532d; }
+  .b-pending { background: #fef9c3; color: #713f12; }
+
+  /* ── Code blocks ── */
+  pre { background: #1e1e1e; color: #d4d4d4; border-radius: var(--radius-sm); padding: 1rem; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin: .5rem 0; }
+  pre .cm  { color: #6a9955; }
+  pre .kw  { color: #569cd6; }
+  pre .st  { color: #ce9178; }
+  pre .vs  { color: #9cdcfe; }
+  pre .fn  { color: #dcdcaa; }
+  pre .num { color: #b5cea8; }
+  pre .vs-col  { color: #60a5fa; }
+  pre .gh-col  { color: #4ade80; }
+  pre .syn-col { color: #fbbf24; }
+  pre .uv-col  { color: #c084fc; }
+  .code-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 4px; margin-top: .75rem; }
+
+  /* ── Flow steps ── */
+  .flow { display: flex; flex-direction: column; }
+  .flow-step { display: flex; gap: 12px; position: relative; }
+  .flow-step:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px; width: 2px; background: var(--border); }
+  .flow-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 4px; }
+  .flow-body { flex: 1; padding-bottom: 1.25rem; }
+  .flow-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .flow-detail { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .fn-vs  { background: var(--vs-light);  color: #1d4ed8; }
+  .fn-git { background: var(--git-light); color: #9a1e05; }
+  .fn-gh  { background: var(--gh-light);  color: #14532d; }
+  .fn-syn { background: var(--syn-light); color: #78350f; }
+  .fn-uv  { background: var(--uv-light);  color: #4c1d95; }
+
+  /* ── Remote push row ── */
+  .remote-row { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+  .remote-row:last-child { border-bottom: none; }
+  .remote-pill { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; min-width: 130px; }
+  .rp-gh  { background: var(--gh-light);  color: #14532d; }
+  .rp-syn { background: var(--syn-light); color: #78350f; }
+  .remote-cmd { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text2); flex: 1; }
+  .remote-note { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; color: var(--text3); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.key { color: var(--text2); font-size: 12px; white-space: nowrap; }
+  td code, th code { font-family: 'Consolas', monospace; font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+
+  /* ── Progress ── */
+  .progress-wrap { background: var(--bg); border-radius: 99px; height: 8px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #16a34a); }
+
+  /* ── Pattern blocks ── */
+  .pattern { border-left: 3px solid var(--border2); padding-left: .875rem; margin: .5rem 0; }
+  .pattern.warn { border-color: #ef4444; }
+  .pattern.ok   { border-color: #22c55e; }
+  .pattern-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .warn .pattern-label { color: #dc2626; }
+  .ok   .pattern-label { color: #16a34a; }
+
+  /* ── Warning box ── */
+  .warn-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: .6rem .875rem; font-size: 12px; color: #78350f; margin: .5rem 0; line-height: 1.5; }
+  .info-box { background: #eff6ff; border: 1px solid #3b82f6; border-radius: var(--radius-sm); padding: .6rem .875rem; font-size: 12px; color: #1e3a8a; margin: .5rem 0; line-height: 1.5; }
+
+  /* ── Section grid ── */
+  .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .5rem; }
+  .section-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .75rem 1rem; display: flex; align-items: center; gap: 10px; }
+  .section-tile .st-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .st-done { background: #22c55e; }
+  .st-pending { background: #f59e0b; }
+  .section-tile .st-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .section-tile .st-sub { font-size: 11px; color: var(--text3); }
+
+  /* ── Connector arrow ── */
+  .arrow-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); padding: .25rem 0; }
+  .arrow-line::before { content: ''; display: block; height: 2px; flex: 1; background: var(--border); }
+  .arrow-line::after { content: '▶'; font-size: 10px; }
+
+  /* ── Alias chip ── */
+  .alias-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--uv-light); color: #4c1d95; border-radius: var(--radius-sm); padding: 3px 8px; font-family: 'Consolas', monospace; font-size: 12px; margin: 2px; }
+
+  /* ── Header color strip ── */
+  .color-strip { height: 4px; border-radius: 2px; margin-bottom: 1rem; }
+  .cs-vs  { background: var(--vs); }
+  .cs-git { background: var(--git); }
+  .cs-gh  { background: var(--gh); }
+  .cs-syn { background: var(--syn); }
+  .cs-uv  { background: var(--uv); }
+  .cs-mar { background: var(--mar); }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  h2 { font-size: 16px; font-weight: 600; color: var(--text); margin: 1.5rem 0 .75rem; }
+  h2:first-child { margin-top: 0; }
+  h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin: 1rem 0 .5rem; text-transform: uppercase; letter-spacing: .04em; }
+  p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: .75rem; }
+
+  /* ── Branch diagram ── */
+  .branch-vis { display: flex; flex-direction: column; gap: 6px; margin: .5rem 0; }
+  .branch-row { display: flex; align-items: center; gap: 8px; font-family: 'Consolas', monospace; font-size: 12px; }
+  .branch-icon { color: var(--text3); width: 20px; text-align: center; }
+  .branch-name { color: #569cd6; }
+  .branch-hash { color: #6a9955; font-size: 11px; }
+  .branch-note { color: var(--text3); font-size: 11px; }
+
+  /* print / responsive */
+  @media (max-width: 700px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="repo-name">python-fundamentals-fb</div>
+    <div class="repo-sub">QCadjunct · Mind Over Metadata LLC</div>
+  </div>
+
+  <div class="nav-section">Toolchain</div>
+  <a class="nav-item active" onclick="show('overview')">
+    <span class="nav-dot nd-gray"></span> Overview
+  </a>
+  <a class="nav-item" onclick="show('vscode')">
+    <span class="nav-dot nd-vs"></span> VS Code workspace
+  </a>
+  <a class="nav-item" onclick="show('git')">
+    <span class="nav-dot nd-git"></span> Git workflow
+  </a>
+  <a class="nav-item" onclick="show('github')">
+    <span class="nav-dot nd-gh"></span> GitHub remote
+  </a>
+  <a class="nav-item" onclick="show('synology')">
+    <span class="nav-dot nd-syn"></span> Synology remote
+  </a>
+  <a class="nav-item" onclick="show('uv')">
+    <span class="nav-dot nd-uv"></span> uv &amp; toolchain
+  </a>
+
+  <div class="nav-section">Migration</div>
+  <a class="nav-item" onclick="show('patterns')">
+    <span class="nav-dot nd-mar"></span> DAG conflict patterns
+  </a>
+  <a class="nav-item" onclick="show('progress')">
+    <span class="nav-dot nd-gray"></span> Section progress
+  </a>
+  <a class="nav-item" onclick="show('lessons')">
+    <span class="nav-dot nd-gray"></span> Lessons learned
+  </a>
+
+  <div class="nav-section">Reference</div>
+  <a class="nav-item" onclick="show('paths')">
+    <span class="nav-dot nd-gray"></span> Paths &amp; aliases
+  </a>
+  <a class="nav-item" onclick="show('pending')">
+    <span class="nav-dot nd-gray"></span> Pending items
+  </a>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="main">
+
+<!-- ──────────── OVERVIEW ──────────── -->
+<section class="section active" id="s-overview">
+  <div class="section-header">
+    <h1>python-fundamentals-fb</h1>
+    <p>Jupyter → Marimo migration reference · Fred Baptiste Python Fundamentals · 160 notebooks · 30 sections</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--vs)"></div> VS Code</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--git)"></div> Git</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gh)"></div> GitHub</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--syn)"></div> Synology</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--uv)"></div> uv / Marimo</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Migration status</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:.5rem">
+      <span style="font-size:32px;font-weight:700;color:var(--text)">87</span>
+      <span style="font-size:18px;color:var(--text3)">/ 160 notebooks</span>
+      <span class="badge b-pending" style="margin-left:auto">54% complete</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:54%"></div></div>
+    <p style="font-size:12px;color:var(--text3);margin-top:.5rem;margin-bottom:0">Sections §03–§13 complete · §14 Built-In Functions is next · ~3 sessions to completion</p>
+  </div>
+
+  <div class="card-row">
+    <div class="card card-half" style="margin-bottom:0">
+      <div class="card-title"><div class="legend-dot" style="background:var(--vs);width:10px;height:10px;border-radius:50%"></div> Open workspace</div>
+      <pre style="font-size:11px;padding:.6rem .8rem;margin:0"><span class="vs">fb-fund</span>
+code python-fundamentals-fb.code-workspace</pre>
+    </div>
+    <div class="card card-half" style="margin-bottom:0">
+      <div class="card-title"><div class="legend-dot" style="background:var(--git);width:10px;height:10px;border-radius:50%"></div> Every commit pushes to both</div>
+      <pre style="font-size:11px;padding:.6rem .8rem;margin:0"><span class="gh-col">git push github main</span>
+<span class="syn-col">git push synology main</span></pre>
+    </div>
+  </div>
+
+  <h2>Repo quick-reference</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <tr><td class="key">WSL path</td><td><code>/mnt/e/WSLData/Projects/python-fundamentals-fb</code></td></tr>
+      <tr><td class="key">Windows path</td><td><code>E:\WSLData\Projects\python-fundamentals-fb</code></td></tr>
+      <tr><td class="key">GitHub</td><td><code>QCadjunct/python-fundamentals-fb</code></td></tr>
+      <tr><td class="key">Synology</td><td><code>ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td></tr>
+      <tr><td class="key">Shell alias</td><td><code>fb-fund</code></td></tr>
+      <tr><td class="key">Marimo version</td><td><code>≥ 0.23.4</code> &nbsp;<span class="badge b-ok">confirmed 0.23.4 on FreedomTower</span></td></tr>
+      <tr><td class="key">Python</td><td><code>3.12</code></td></tr>
+      <tr><td class="key">Toolchain</td><td><code>uv</code> · <code>uvx</code> · <code>ruff</code> — exclusively. <strong>pip is prohibited.</strong></td></tr>
+      <tr><td class="key">HEAD</td><td><code>6e0acf9</code> (feat(13)) — synology + github in sync</td></tr>
+      <tr><td class="key">Obsidian vault</td><td><code>E:\Obsidian\udemy-fred-baptiste</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── VS CODE ──────────── -->
+<section class="section" id="s-vscode">
+  <div class="color-strip cs-vs"></div>
+  <div class="section-header">
+    <h1>VS Code workspace</h1>
+    <p>Always open by workspace file — never by folder. This ensures the correct venv and Marimo path activate automatically.</p>
+  </div>
+
+  <div class="warn-box">
+    ⚠️ <strong>Always open by .code-workspace</strong> — opening by folder bypasses interpreter and Marimo path settings. The workspace file is authoritative.
+  </div>
+
+  <h2>Opening the workspace</h2>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num fn-uv">1</div>
+      <div class="flow-body">
+        <div class="flow-title">Navigate to repo via alias</div>
+        <pre><span class="vs">fb-fund</span>   <span class="cm"># alias: cd /mnt/e/WSLData/Projects/python-fundamentals-fb</span></pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-vs">2</div>
+      <div class="flow-body">
+        <div class="flow-title">Open workspace (not folder)</div>
+        <pre>code python-fundamentals-fb.code-workspace   <span class="cm"># ← always this</span>
+<span class="cm"># NOT: code .   ← never this</span></pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-vs">3</div>
+      <div class="flow-body">
+        <div class="flow-title">Verify interpreter in VS Code status bar</div>
+        <div class="flow-detail">Bottom bar should show: <code>.venv/bin/python (Python 3.12.x)</code><br>If it shows system Python, reopen the workspace file.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-vs">4</div>
+      <div class="flow-body">
+        <div class="flow-title">Open a Marimo notebook via uvx</div>
+        <pre>uvx marimo edit notebooks/03-python-basics/basic_data_types.py</pre>
+        <div class="flow-detail" style="margin-top:4px">Marimo opens in browser. VS Code terminal stays active for git operations.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Workspace file contents</h2>
+  <div class="code-label">python-fundamentals-fb.code-workspace</div>
+  <pre>{
+  <span class="st">"folders"</span>: [{ <span class="st">"path"</span>: <span class="st">"."</span> }],
+  <span class="st">"settings"</span>: {
+    <span class="st">"python.defaultInterpreterPath"</span>: <span class="st">"${workspaceFolder}/.venv/bin/python"</span>,
+    <span class="st">"python.terminal.activateEnvironment"</span>: <span class="kw">true</span>,
+    <span class="st">"[python]"</span>: {
+      <span class="st">"editor.defaultFormatter"</span>: <span class="st">"charliermarsh.ruff"</span>
+    },
+    <span class="st">"marimo.marimoPath"</span>: <span class="st">"${workspaceFolder}/.venv/bin/marimo"</span>
+  }
+}</pre>
+
+  <h2>What the workspace controls</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Setting</th><th>Effect</th><th>Without workspace</th></tr></thead>
+      <tr>
+        <td><code>defaultInterpreterPath</code></td>
+        <td>Points Pylance and the terminal to <code>.venv</code></td>
+        <td class="key">Falls back to system Python — wrong completions, missing packages</td>
+      </tr>
+      <tr>
+        <td><code>activateEnvironment</code></td>
+        <td>Auto-activates <code>.venv</code> in every integrated terminal</td>
+        <td class="key">Must run <code>source .venv/bin/activate</code> manually each time</td>
+      </tr>
+      <tr>
+        <td><code>defaultFormatter</code></td>
+        <td>Ruff formats on save (not Black/Pylint)</td>
+        <td class="key">Falls back to whatever formatter is set globally — may reformat incorrectly</td>
+      </tr>
+      <tr>
+        <td><code>marimo.marimoPath</code></td>
+        <td>VS Code Marimo extension uses project's pinned version</td>
+        <td class="key">Extension uses system Marimo or fails to launch</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Related shell aliases</h2>
+  <div class="card">
+    <div class="code-label">~/.bashrc</div>
+    <pre><span class="vs">alias fb-fund</span>=<span class="st">'cd /mnt/e/WSLData/Projects/python-fundamentals-fb'</span>
+<span class="vs">alias fb-deepdive</span>=<span class="st">'cd /mnt/e/WSLData/Projects/python-deepdive-fb'</span>
+<span class="vs">alias fb-pydantic</span>=<span class="st">'cd /mnt/e/WSLData/Projects/pydantic-v2-essentials'</span>
+<span class="vs">alias fb-notes</span>=<span class="st">'cd /mnt/e/Obsidian/udemy-fred-baptiste'</span></pre>
+  </div>
+</section>
+
+<!-- ──────────── GIT ──────────── -->
+<section class="section" id="s-git">
+  <div class="color-strip cs-git"></div>
+  <div class="section-header">
+    <h1>Git workflow</h1>
+    <p>WSL2 is the authoritative git interface. Never use PowerShell for git operations.</p>
+  </div>
+
+  <div class="warn-box">
+    ⚠️ <strong>WSL only.</strong> All git commands run from WSL2 terminal. PowerShell git is never used in this repo.
+  </div>
+
+  <h2>Branch-per-section strategy</h2>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num fn-git">1</div>
+      <div class="flow-body">
+        <div class="flow-title">Create section branch</div>
+        <pre>git checkout -b <span class="vs">section/14-builtin-functions</span></pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-git">2</div>
+      <div class="flow-body">
+        <div class="flow-title">Work on notebooks · commit each notebook</div>
+        <pre>git add notebooks/14-builtin-functions/
+git commit -m <span class="st">"feat(14): builtin_functions — r1/c1 loop var scoping"</span></pre>
+        <div class="flow-detail" style="margin-top:4px">Commit message format: <code>feat(NN): &lt;notebook-names&gt; — &lt;key decisions&gt;</code></div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-gh">3</div>
+      <div class="flow-body">
+        <div class="flow-title">When section complete — merge to main (no-ff)</div>
+        <pre>git checkout main
+git merge --no-ff <span class="vs">section/14-builtin-functions</span>
+git commit -m <span class="st">"feat(14): complete Built-In Functions — N notebooks"</span></pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-syn">4</div>
+      <div class="flow-body">
+        <div class="flow-title">Push to both remotes — always together</div>
+        <pre><span class="gh-col">git push github main</span>
+<span class="syn-col">git push synology main</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <h2>Commit message convention</h2>
+  <div class="card">
+    <div class="card-title">Format</div>
+    <pre><span class="fn">feat</span>(<span class="num">NN</span>): &lt;notebook-names&gt; — &lt;key naming decisions&gt;</pre>
+    <div class="code-label" style="margin-top:.75rem">Examples</div>
+    <pre><span class="gh-col">feat(07):</span> for_loops, while_loops, solutions — r1/r2/r3/c1/c2/c3 loop var scoping
+<span class="gh-col">feat(13):</span> custom_functions, star_args, default_values, keyword_only, lambda, solutions
+<span class="gh-col">feat(14):</span> complete Built-In Functions — 4 notebooks, e1/e2/e3 exception loop vars</pre>
+  </div>
+
+  <h2>Current branch state</h2>
+  <div class="card">
+    <div class="branch-vis">
+      <div class="branch-row">
+        <span class="branch-icon">●</span>
+        <span class="branch-name">main</span>
+        <span class="branch-hash">6e0acf9</span>
+        <span class="branch-note">feat(13): complete Functions — 6 notebooks</span>
+      </div>
+      <div class="branch-row">
+        <span class="branch-icon">└</span>
+        <span class="branch-name">section/14-builtin-functions</span>
+        <span class="branch-note" style="color:#f59e0b">⏳ to be created this session</span>
+      </div>
+    </div>
+  </div>
+
+  <h2>Key locked decisions</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Decision</th><th>Rule</th></tr></thead>
+      <tr><td>Repo name</td><td><code>python-fundamentals-fb</code> — not <code>spec-driven-development-jb</code></td></tr>
+      <tr><td>Merge style</td><td><code>--no-ff</code> always — preserves section branch in history</td></tr>
+      <tr><td>Git interface</td><td>WSL2 terminal only. Never PowerShell.</td></tr>
+      <tr><td>Remote push</td><td>Always push to <strong>both</strong> remotes in same session</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── GITHUB ──────────── -->
+<section class="section" id="s-github">
+  <div class="color-strip cs-gh"></div>
+  <div class="section-header">
+    <h1>GitHub remote</h1>
+    <p>Primary public/cloud remote. SSH auth. Remote name: <code>github</code>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="badge b-gh">github</span> &nbsp; Remote configuration</div>
+    <div class="card" style="padding:0;overflow:hidden;margin:0">
+      <table>
+        <tr><td class="key">Remote name</td><td><code>github</code></td></tr>
+        <tr><td class="key">URL</td><td><code>git@github.com:QCadjunct/python-fundamentals-fb.git</code></td></tr>
+        <tr><td class="key">Auth</td><td>SSH key (not HTTPS) — set during vault normalization</td></tr>
+        <tr><td class="key">Default branch</td><td><code>main</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>Verify remote</h2>
+  <pre>git remote -v
+<span class="cm"># Expected output:</span>
+<span class="gh-col">github    git@github.com:QCadjunct/python-fundamentals-fb.git (fetch)</span>
+<span class="gh-col">github    git@github.com:QCadjunct/python-fundamentals-fb.git (push)</span>
+<span class="syn-col">synology  ssh://synology:/volume1/git/python-fundamentals-fb.git (fetch)</span>
+<span class="syn-col">synology  ssh://synology:/volume1/git/python-fundamentals-fb.git (push)</span></pre>
+
+  <h2>Push to GitHub</h2>
+  <pre><span class="gh-col">git push github main</span>   <span class="cm"># always paired with synology push</span></pre>
+
+  <div class="info-box">
+    ℹ️ GitHub is the <strong>public/cloud</strong> copy. Synology is the <strong>local NAS</strong> copy. Both must stay in sync — push to both in every session.
+  </div>
+
+  <h2>SSH troubleshooting</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+      <tr>
+        <td>Permission denied (publickey)</td>
+        <td><code>eval $(ssh-agent) &amp;&amp; ssh-add ~/.ssh/id_ed25519</code></td>
+      </tr>
+      <tr>
+        <td>Remote shows HTTPS not SSH</td>
+        <td><code>git remote set-url github git@github.com:QCadjunct/python-fundamentals-fb.git</code></td>
+      </tr>
+      <tr>
+        <td>Verify SSH connection</td>
+        <td><code>ssh -T git@github.com</code></td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── SYNOLOGY ──────────── -->
+<section class="section" id="s-synology">
+  <div class="color-strip cs-syn"></div>
+  <div class="section-header">
+    <h1>Synology remote</h1>
+    <p>Local NAS bare repo on DS920+. Primary recovery copy. Remote name: <code>synology</code>.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="badge b-syn">synology</span> &nbsp; Remote configuration</div>
+    <div class="card" style="padding:0;overflow:hidden;margin:0">
+      <table>
+        <tr><td class="key">Remote name</td><td><code>synology</code></td></tr>
+        <tr><td class="key">URL</td><td><code>ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td></tr>
+        <tr><td class="key">Auth</td><td>SSH (Tailscale mesh — reachable as <code>synology</code>)</td></tr>
+        <tr><td class="key">Bare repo path</td><td><code>/volume1/git/python-fundamentals-fb.git</code></td></tr>
+        <tr><td class="key">Default branch</td><td><code>main</code></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>Push to Synology</h2>
+  <pre><span class="syn-col">git push synology main</span>   <span class="cm"># always paired with github push</span></pre>
+
+  <h2>Role in the four-tier backup strategy</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Tier</th><th>System</th><th>What it covers</th></tr></thead>
+      <tr><td>1 (primary)</td><td><span class="badge b-syn">Synology</span></td><td>Git bare repos · local NAS · instant recovery</td></tr>
+      <tr><td>2</td><td>Acronis</td><td>Machine-level C: disk images</td></tr>
+      <tr><td>3</td><td>OneDrive</td><td>Active sync of Documents / Desktop</td></tr>
+      <tr><td>4 (cloud)</td><td>iDrive</td><td>E:\DataRaid1 file backup · zero-knowledge encrypted</td></tr>
+    </table>
+  </div>
+
+  <div class="info-box">
+    ℹ️ ADR-060 governs the four-tier backup strategy. Synology is tier 1 for all git repos. GitHub is the cloud mirror, not the primary.
+  </div>
+
+  <h2>Synology SSH troubleshooting</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Symptom</th><th>Fix</th></tr></thead>
+      <tr>
+        <td>Connection refused</td>
+        <td>Verify Tailscale is running: <code>tailscale status</code></td>
+      </tr>
+      <tr>
+        <td>Verify SSH connection</td>
+        <td><code>ssh synology echo ok</code></td>
+      </tr>
+      <tr>
+        <td>Remote URL wrong</td>
+        <td><code>git remote set-url synology ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>Dual-remote push — canonical pattern</h2>
+  <div class="card">
+    <div class="remote-row">
+      <div class="remote-pill rp-gh">⬆ GitHub</div>
+      <div class="remote-cmd">git push github main</div>
+      <div class="remote-note">cloud · public mirror</div>
+    </div>
+    <div class="remote-row">
+      <div class="remote-pill rp-syn">⬆ Synology</div>
+      <div class="remote-cmd">git push synology main</div>
+      <div class="remote-note">LAN NAS · primary recovery</div>
+    </div>
+    <div style="margin-top:.75rem">
+      <div class="warn-box" style="margin:0">Both pushes are required every session. A single-remote push leaves the backup asymmetric.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── UV / TOOLCHAIN ──────────── -->
+<section class="section" id="s-uv">
+  <div class="color-strip cs-uv"></div>
+  <div class="section-header">
+    <h1>uv &amp; toolchain</h1>
+    <p>Astral uv / uvx / Ruff exclusively. pip is prohibited in this repo.</p>
+  </div>
+
+  <div class="warn-box">
+    ⚠️ <strong>pip is prohibited.</strong> All package operations use <code>uv</code> or <code>uvx</code>. Any pip usage breaks the lockfile contract.
+  </div>
+
+  <h2>Setup from scratch</h2>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num fn-uv">1</div>
+      <div class="flow-body">
+        <div class="flow-title">Create venv</div>
+        <pre>uv venv --python 3.12</pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-uv">2</div>
+      <div class="flow-body">
+        <div class="flow-title">Install project (editable)</div>
+        <pre>uv pip install -e .</pre>
+        <div class="flow-detail" style="margin-top:4px">Requires <code>pyproject.toml</code> with correct settings (see below)</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-uv">3</div>
+      <div class="flow-body">
+        <div class="flow-title">Run a notebook</div>
+        <pre>uvx marimo edit notebooks/03-python-basics/basic_data_types.py</pre>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-uv">4</div>
+      <div class="flow-body">
+        <div class="flow-title">Lint</div>
+        <pre>uvx ruff check notebooks/</pre>
+      </div>
+    </div>
+  </div>
+
+  <h2>pyproject.toml critical settings</h2>
+  <div class="warn-box">Both <code>[tool.uv] package = false</code> and <code>[tool.setuptools] packages = []</code> are required. Without them, <code>uv pip install -e .</code> fails.</div>
+  <pre>[<span class="vs">tool.uv</span>]
+<span class="vs">package</span> = <span class="kw">false</span>   <span class="cm"># ← required</span>
+
+[<span class="vs">tool.setuptools</span>]
+<span class="vs">packages</span> = []     <span class="cm"># ← required</span>
+
+[<span class="vs">tool.ruff</span>]
+<span class="vs">line-length</span> = <span class="num">88</span>
+<span class="vs">target-version</span> = <span class="st">"py312"</span></pre>
+
+  <h2>~/.bashrc required setting</h2>
+  <pre><span class="kw">export</span> <span class="vs">UV_LINK_MODE</span>=<span class="st">copy</span>   <span class="cm"># suppresses WSL2 filesystem warnings</span></pre>
+
+  <h2>Marimo notebook deployment (Python writer pattern)</h2>
+  <div class="warn-box">⚠️ Browser renders <code>marimo.App</code>, <code>mo.md</code>, <code>app.run</code> as hyperlinks — corrupts bash heredoc. <strong>Always use the Python writer pattern.</strong></div>
+  <div class="pattern ok">
+    <div class="pattern-label">✓ Correct — Python writer</div>
+    <pre>python3 &lt;&lt; <span class="st">'PYEOF'</span>
+<span class="kw">import</span> pathlib
+pathlib.Path(<span class="st">"notebooks/14-builtin-functions/file.py"</span>).write_text(<span class="st">'''
+import marimo
+app = marimo.App()
+...
+'''</span>)
+PYEOF</pre>
+  </div>
+  <div class="pattern warn">
+    <div class="pattern-label">✗ Wrong — raw bash heredoc</div>
+    <pre><span class="cm"># Links in the content corrupt the heredoc</span>
+cat &gt; notebooks/file.py &lt;&lt; EOF
+import marimo
+app = marimo.App()   # ← rendered as hyperlink → file corrupted
+EOF</pre>
+  </div>
+</section>
+
+<!-- ──────────── PATTERNS ──────────── -->
+<section class="section" id="s-patterns">
+  <div class="color-strip cs-mar"></div>
+  <div class="section-header">
+    <h1>DAG conflict patterns</h1>
+    <p>Marimo's reactive DAG requires all variable names to be unique across cells. These patterns resolve the conflicts.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Conflict scan summary</div>
+    <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+      <div>
+        <div style="font-size:28px;font-weight:700;color:#22c55e">37</div>
+        <div style="font-size:12px;color:var(--text3)">Clean — direct convert</div>
+      </div>
+      <div>
+        <div style="font-size:28px;font-weight:700;color:#f59e0b">123</div>
+        <div style="font-size:12px;color:var(--text3)">Require manual fix</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Pattern A — Numeric suffix (most common)</h2>
+  <div class="pattern warn">
+    <div class="pattern-label">✗ Jupyter (conflict in Marimo)</div>
+    <pre>x = 10          <span class="cm"># cell 3</span>
+x = <span class="st">'hello'</span>    <span class="cm"># cell 7  ← DAG conflict — x defined twice</span></pre>
+  </div>
+  <div class="pattern ok">
+    <div class="pattern-label">✓ Marimo fix</div>
+    <pre>x_1 = 10        <span class="cm"># cell 3</span>
+x_2 = <span class="st">'hello'</span>  <span class="cm"># cell 7 — unique names, no conflict</span></pre>
+  </div>
+
+  <h2>Pattern B — Loop variable uniqueness <span class="badge b-pending" style="vertical-align:middle">Critical discovery</span></h2>
+  <div class="warn-box">⚠️ For loop variables <strong>leak out of loops into Marimo's DAG cell scope</strong>. The static scanner does NOT catch this. This is the most common hidden conflict.</div>
+  <div class="pattern warn">
+    <div class="pattern-label">✗ Wrong — both cells export 'r' and 'c'</div>
+    <pre><span class="cm"># cell A</span>
+<span class="kw">for</span> r <span class="kw">in</span> range(len(m1)):
+    <span class="kw">for</span> c <span class="kw">in</span> range(len(m1[r])): ...
+
+<span class="cm"># cell B — CONFLICT: r and c already defined by cell A</span>
+<span class="kw">for</span> r <span class="kw">in</span> range(len(m2)):
+    <span class="kw">for</span> c <span class="kw">in</span> range(len(m2[r])): ...</pre>
+  </div>
+  <div class="pattern ok">
+    <div class="pattern-label">✓ Correct — unique loop vars per cell</div>
+    <pre><span class="cm"># cell A</span>
+<span class="kw">for</span> r1 <span class="kw">in</span> range(len(m1)):
+    <span class="kw">for</span> c1 <span class="kw">in</span> range(len(m1[r1])): ...
+
+<span class="cm"># cell B — OK: r2/c2 are fresh names</span>
+<span class="kw">for</span> r2 <span class="kw">in</span> range(len(m2)):
+    <span class="kw">for</span> c2 <span class="kw">in</span> range(len(m2[r2])): ...</pre>
+  </div>
+  <div class="info-box">Standard naming convention: <code>r1/c1</code> · <code>r2/c2</code> · <code>r3/c3</code> · <code>e1/e2/e3</code> · <code>v1/v2/v3/v4</code></div>
+
+  <h2>Pattern C — Semantic suffixes</h2>
+  <div class="pattern ok">
+    <div class="pattern-label">✓ Use when teaching the same concept in different types</div>
+    <pre>a_int   = 10        <span class="cm"># teaching int</span>
+a_float = 10.5      <span class="cm"># teaching float</span>
+a_str   = <span class="st">'hello'</span>  <span class="cm"># teaching str</span></pre>
+  </div>
+
+  <h2>Pattern D — Class version suffixes</h2>
+  <div class="pattern ok">
+    <div class="pattern-label">✓ Use when a class is progressively enhanced across cells</div>
+    <pre><span class="kw">class</span> VectorV1: ...   <span class="cm"># initial implementation</span>
+<span class="kw">class</span> VectorV2: ...   <span class="cm"># adds __repr__</span>
+<span class="kw">class</span> VectorV3: ...   <span class="cm"># adds __add__</span></pre>
+  </div>
+
+  <h2>Conversion commands</h2>
+  <div class="card">
+    <div class="code-label">Bulk convert (MMS-023 nb_convert.py)</div>
+    <pre>python3 convert/nb_convert.py \
+  --input <span class="st">"/tmp/fred-baptiste/14 - Some Additional Built-In Functions"</span> \
+  --output notebooks/14-builtin-functions/</pre>
+    <div class="code-label" style="margin-top:.75rem">Scan for conflicts (MMS-024 scan_conflicts.py)</div>
+    <pre>python3 convert/scan_conflicts.py \
+  --section <span class="st">"14 - Some Additional Built-In Functions"</span></pre>
+    <div class="code-label" style="margin-top:.75rem">Manual scan (inline)</div>
+    <pre>python3 -c <span class="st">"
+import json, pathlib
+base = '/tmp/fred-baptiste/python-fundamentals-main/14 - Some Additional Built-In Functions'
+for f in sorted(pathlib.Path(base).rglob('*.ipynb')):
+    print(f.relative_to(base))
+"</span></pre>
+  </div>
+</section>
+
+<!-- ──────────── PROGRESS ──────────── -->
+<section class="section" id="s-progress">
+  <div class="section-header">
+    <h1>Section progress</h1>
+    <p>87 / 160 notebooks converted as of 2026-05-01. §14 is next.</p>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:.5rem">
+      <span style="font-size:28px;font-weight:700">87 / 160</span>
+      <span style="color:var(--text3)">notebooks</span>
+      <span class="badge b-ok" style="margin-left:auto">§03–§13 complete</span>
+    </div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:54%"></div></div>
+  </div>
+
+  <div class="section-grid">
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§03 Python Basics</div><div class="st-sub">5 / 5</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§04 Conditional</div><div class="st-sub">4 / 4</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§05 Sequences</div><div class="st-sub">8 / 8</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§06 Strings</div><div class="st-sub">3 / 3</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§07 Iteration</div><div class="st-sub">5 / 5</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§08 Dictionaries</div><div class="st-sub">4 / 4</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§09 Sets</div><div class="st-sub">3 / 3</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§10 Comprehensions</div><div class="st-sub">4 / 4</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§11 Exceptions</div><div class="st-sub">3 / 3</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§12 Iterables</div><div class="st-sub">3 / 3</div></div></div>
+    <div class="section-tile"><span class="st-status st-done"></span><div><div class="st-name">§13 Functions</div><div class="st-sub">6 / 6</div></div></div>
+    <div class="section-tile" style="border-color:#f59e0b"><span class="st-status st-pending"></span><div><div class="st-name">§14 Built-In Fns</div><div class="st-sub">~4 · ⏳ next</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§16 Higher Order</div><div class="st-sub">~4</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§17 Sorting</div><div class="st-sub">~3</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§18 Decorators</div><div class="st-sub">~4</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§19 Text Files</div><div class="st-sub">~4</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§20 Modules</div><div class="st-sub">~2</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§21 Dates &amp; Times</div><div class="st-sub">~4</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§22 CSV Module</div><div class="st-sub">~4</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§23 Random</div><div class="st-sub">~3</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§24 Math &amp; Stats</div><div class="st-sub">~3</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§25 Decimal</div><div class="st-sub">~3</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§26 Custom Classes</div><div class="st-sub">~8</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§28 3rd Party</div><div class="st-sub">~2</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§29 NumPy</div><div class="st-sub">~8</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§30 Pandas</div><div class="st-sub">~8</div></div></div>
+    <div class="section-tile"><span class="st-status st-pending"></span><div><div class="st-name">§31 Matplotlib</div><div class="st-sub">~5</div></div></div>
+  </div>
+
+  <h2>Data files (§29–§31)</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Original filename</th><th>Used in</th><th>Canonical path</th></tr></thead>
+      <tr><td>populations.csv</td><td>§30, §31</td><td><code>data/populations.csv</code></td></tr>
+      <tr><td>world_bank_countries.csv</td><td>§30</td><td><code>data/world_bank_countries.csv</code></td></tr>
+      <tr><td>Morningstar EU Funds.csv</td><td>§30</td><td><code>data/morningstar_eu_funds.csv</code></td></tr>
+      <tr><td>DEXUSEU.csv</td><td>§31</td><td><code>data/dexuseu.csv</code></td></tr>
+      <tr><td>AAPL_data.csv</td><td>§31</td><td><code>data/aapl_data.csv</code></td></tr>
+      <tr><td>daily_quotes.csv</td><td>§30, §31</td><td><code>data/daily_quotes.csv</code></td></tr>
+      <tr><td>widget_sales.csv</td><td>§32</td><td><code>data/widget_sales.csv</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── LESSONS LEARNED ──────────── -->
+<section class="section" id="s-lessons">
+  <div class="section-header">
+    <h1>Lessons learned</h1>
+    <p>Permanent record of hard-won migration knowledge. Do not relitigate.</p>
+  </div>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-num fn-git" style="font-size:10px;font-weight:700">L1</div>
+      <div class="flow-body">
+        <div class="flow-title">Loop var leak — scanner blind spot</div>
+        <div class="flow-detail">For loop variables persist into Marimo cell scope. The static conflict scanner does <strong>not</strong> catch this. Must be caught by manual inspection or runtime error. Always use unique names per cell: <code>r1/c1</code>, <code>r2/c2</code>, <code>e1/e2/e3</code>.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-git" style="font-size:10px;font-weight:700">L2</div>
+      <div class="flow-body">
+        <div class="flow-title">Python writer — never raw bash heredoc</div>
+        <div class="flow-detail">Browser renders <code>marimo.App</code>, <code>mo.md</code>, and <code>app.run</code> as hyperlinks inside bash heredocs, corrupting the output file. Always deploy notebooks with <code>python3 &lt;&lt; 'PYEOF'</code> pattern using <code>pathlib.Path.write_text()</code>.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-git" style="font-size:10px;font-weight:700">L3</div>
+      <div class="flow-body">
+        <div class="flow-title">Generator exhaustion</div>
+        <div class="flow-detail">Generators are consumed on first iteration. When the same generator is demonstrated multiple times across cells, each demonstration needs a fresh variable: <code>squares_1</code> through <code>squares_4</code>. Reusing the same name silently returns empty on the second cell.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-git" style="font-size:10px;font-weight:700">L4</div>
+      <div class="flow-body">
+        <div class="flow-title">pyproject.toml — both settings required</div>
+        <div class="flow-detail">Both <code>[tool.uv] package = false</code> and <code>[tool.setuptools] packages = []</code> must be present. Either one missing causes <code>uv pip install -e .</code> to fail with a confusing error.</div>
+      </div>
+    </div>
+    <div class="flow-step">
+      <div class="flow-num fn-git" style="font-size:10px;font-weight:700">L5</div>
+      <div class="flow-body">
+        <div class="flow-title">datetime.utcnow() DeprecationWarning</div>
+        <div class="flow-detail">Python 3.12 emits a DeprecationWarning for <code>datetime.utcnow()</code>. This is expected and non-fatal. Do not attempt to suppress it in the notebooks — it is Fred Baptiste's code and part of the teaching material.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────── PATHS & ALIASES ──────────── -->
+<section class="section" id="s-paths">
+  <div class="section-header">
+    <h1>Paths &amp; aliases</h1>
+    <p>All authoritative paths for this project.</p>
+  </div>
+
+  <h2>Shell aliases</h2>
+  <div class="card">
+    <div class="alias-chip">fb-fund</div>
+    <span style="font-size:12px;color:var(--text3)"> → </span>
+    <code style="font-size:12px">/mnt/e/WSLData/Projects/python-fundamentals-fb</code>
+    <br><br>
+    <div class="alias-chip">fb-deepdive</div>
+    <span style="font-size:12px;color:var(--text3)"> → </span>
+    <code style="font-size:12px">/mnt/e/WSLData/Projects/python-deepdive-fb</code>
+    <br><br>
+    <div class="alias-chip">fb-pydantic</div>
+    <span style="font-size:12px;color:var(--text3)"> → </span>
+    <code style="font-size:12px">/mnt/e/WSLData/Projects/pydantic-v2-essentials</code>
+    <br><br>
+    <div class="alias-chip">fb-notes</div>
+    <span style="font-size:12px;color:var(--text3)"> → </span>
+    <code style="font-size:12px">/mnt/e/Obsidian/udemy-fred-baptiste</code>
+  </div>
+
+  <h2>All project paths</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Location</th><th>Path</th></tr></thead>
+      <tr><td class="key">WSL (authoritative)</td><td><code>/mnt/e/WSLData/Projects/python-fundamentals-fb</code></td></tr>
+      <tr><td class="key">Windows</td><td><code>E:\WSLData\Projects\python-fundamentals-fb</code></td></tr>
+      <tr><td class="key">GitHub</td><td><code>git@github.com:QCadjunct/python-fundamentals-fb.git</code></td></tr>
+      <tr><td class="key">Synology</td><td><code>ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td></tr>
+      <tr><td class="key">Obsidian vault</td><td><code>E:\Obsidian\udemy-fred-baptiste</code></td></tr>
+      <tr><td class="key">Migration spec (vault)</td><td><code>E:\Obsidian\udemy-fred-baptiste\python3-fundamentals\jupyter-marimo-migration-spec-v2.md</code></td></tr>
+      <tr><td class="key">Source notebooks (WSL)</td><td><code>/tmp/fred-baptiste/python-fundamentals-main/</code></td></tr>
+      <tr><td class="key">venv</td><td><code>.venv/bin/python</code> (Python 3.12)</td></tr>
+      <tr><td class="key">Converters</td><td><code>convert/nb_convert.py</code> · <code>convert/scan_conflicts.py</code></td></tr>
+      <tr><td class="key">Data files</td><td><code>data/</code> at repo root</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ──────────── PENDING ──────────── -->
+<section class="section" id="s-pending">
+  <div class="section-header">
+    <h1>Pending items</h1>
+    <p>Do not action without Navigator direction.</p>
+  </div>
+
+  <h2>ADR candidates</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>ADR</th><th>Title</th><th>Status</th></tr></thead>
+      <tr>
+        <td><code>ADR-061</code></td>
+        <td>Jupyter → Marimo Migration — Fred Baptiste Python Fundamentals</td>
+        <td><span class="badge b-pending">Proposed</span></td>
+      </tr>
+    </table>
+  </div>
+  <div class="info-box">ADR vault: <code>E:\Obsidian\Architectural-Decision-Records\</code> · GitHub: QCadjunct/obsidian-adr · Last filed: ADR-060 · Next: ADR-061</div>
+
+  <h2>MOM scripts pending registration</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>MMS ID</th><th>Script</th><th>Purpose</th></tr></thead>
+      <tr>
+        <td><code>MMS-023</code></td>
+        <td><code>convert/nb_convert.py</code></td>
+        <td>Bulk .ipynb → Marimo .py converter</td>
+      </tr>
+      <tr>
+        <td><code>MMS-024</code></td>
+        <td><code>convert/scan_conflicts.py</code></td>
+        <td>Variable redefinition scanner</td>
+      </tr>
+    </table>
+  </div>
+
+  <h2>IP embargo</h2>
+  <div class="warn-box">
+    ⚠️ TC56 and all new IP items are embargoed pending VLA consultation.<br>
+    <strong>VLA:</strong> (212) 319-2787 · vlany.org — first call before any public disclosure.
+  </div>
+
+  <h2>Locked decisions (do not relitigate)</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table>
+      <thead><tr><th>Decision</th><th>Value</th></tr></thead>
+      <tr><td>Repo name</td><td><code>python-fundamentals-fb</code></td></tr>
+      <tr><td>Marimo version</td><td><code>≥ 0.23.4</code> (confirmed 0.23.4 on FreedomTower)</td></tr>
+      <tr><td>Loop var pattern</td><td>Unique names per cell: <code>r1/c1</code>, <code>r2/c2</code>, <code>e1/e2/e3</code></td></tr>
+      <tr><td>Python writer</td><td>Always <code>python3 &lt;&lt; 'PYEOF'</code> — never raw bash heredoc</td></tr>
+      <tr><td>Dual remote push</td><td><code>git push synology main &amp;&amp; git push github main</code> every commit</td></tr>
+      <tr><td>Toolchain</td><td><code>uv</code> exclusively — pip prohibited</td></tr>
+      <tr><td>pyproject.toml</td><td><code>[tool.uv] package=false</code> and <code>[tool.setuptools] packages=[]</code></td></tr>
+      <tr><td>UV_LINK_MODE</td><td><code>copy</code> in <code>~/.bashrc</code></td></tr>
+      <tr><td>KISS</td><td>Keep It Simple and Standard</td></tr>
+    </table>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+</body>
+</html>
