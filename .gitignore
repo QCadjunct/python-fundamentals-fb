@@ -4,3 +4,7 @@ __pycache__/
 .DS_Store
 source_notebooks/
 __marimo__/
+
+# Large data files — source from source_notebooks/ or external download
+data/morningstar_eu_funds.csv
+data/transactions.csv
