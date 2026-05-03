@@ -12,3 +12,4 @@ data/transactions.csv
 # Ignore exercise output CSV modifications
 data/*.csv
 python_fundamentals_fb.egg-info/
+exports/
