@@ -25,3 +25,6 @@ package = false
 
 [tool.setuptools]
 packages = []
+
+[tool.marimo.runtime]
+auto_instantiate = false
