@@ -8,7 +8,7 @@
 import marimo
 
 __generated_with = "0.23.4"
-app = marimo.App()
+app = marimo.App(auto_instantiate=False)
 
 
 @app.cell
