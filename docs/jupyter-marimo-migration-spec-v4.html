@@ -1,0 +1,2998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jupyter → Marimo Migration Spec v4 — python-fundamentals-fb</title>
+<style>
+
+  :root {
+    --vs: #0078d4; --vs-bg: #1e3a5f; --vs-light: #dbeafe; --vs-dark: #1e3a5f;
+    --git: #f05133; --git-bg: #4a1a0a; --git-light: #fde8e0; --git-dark: #4a1a0a;
+    --gh: #238636;  --gh-bg: #0d3320;  --gh-light: #dcfce7;  --gh-dark: #0d3320;
+    --syn: #c7922a; --syn-bg: #3d2800; --syn-light: #fef3c7; --syn-dark: #3d2800;
+    --uv: #7c3aed;  --uv-bg: #2e1a4f;  --uv-light: #ede9fe;  --uv-dark: #2e1a4f;
+    --mar: #0891b2; --mar-bg: #0a2535; --mar-light: #cffafe; --mar-dark: #0a2535;
+    --bg: #f8f7f5; --surface: #ffffff; --border: #e5e3de; --border2: #d1cfc8;
+    --text: #1a1918; --text2: #5c5a55; --text3: #8c8a84;
+    --radius: 10px; --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 1rem 0; }
+  .main { flex: 1; padding: 2rem; max-width: 900px; }
+
+  /* ── Sidebar ── */
+  .sidebar-logo { padding: .5rem 1rem 1rem; }
+  .sidebar-logo .repo-name { font-size: 12px; font-weight: 600; color: var(--text); font-family: 'Consolas', monospace; }
+  .sidebar-logo .repo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .nav-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); padding: .75rem 1rem .25rem; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: .45rem 1rem; font-size: 13px; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all .15s; text-decoration: none; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--bg); color: var(--text); border-left-color: var(--vs); font-weight: 500; }
+  .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .nd-vs { background: var(--vs); }
+  .nd-git { background: var(--git); }
+  .nd-gh { background: var(--gh); }
+  .nd-syn { background: var(--syn); }
+  .nd-uv { background: var(--uv); }
+  .nd-mar { background: var(--mar); }
+  .nd-gray { background: #999; }
+
+  /* ── Sections ── */
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-header { margin-bottom: 1.5rem; }
+  .section-header h1 { font-size: 22px; font-weight: 600; color: var(--text); }
+  .section-header p { font-size: 14px; color: var(--text2); margin-top: .25rem; }
+
+  /* ── Cards ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: .75rem; display: flex; align-items: center; gap: 8px; }
+  .card-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .card-half { flex: 1; min-width: 240px; }
+
+  /* ── Badges / Chips ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .b-vs  { background: var(--vs-light);  color: #1d4ed8; }
+  .b-git { background: var(--git-light); color: #9a1e05; }
+  .b-gh  { background: var(--gh-light);  color: #14532d; }
+  .b-syn { background: var(--syn-light); color: #78350f; }
+  .b-uv  { background: var(--uv-light);  color: #4c1d95; }
+  .b-mar { background: var(--mar-light); color: #164e63; }
+  .b-ok  { background: #dcfce7; color: #14532d; }
+  .b-pending { background: #fef9c3; color: #713f12; }
+
+  /* ── Code blocks ── */
+  pre { background: #1e1e1e; color: #d4d4d4; border-radius: var(--radius-sm); padding: 1rem; font-family: 'Consolas', 'Courier New', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin: .5rem 0; }
+  pre .cm  { color: #6a9955; }
+  pre .kw  { color: #569cd6; }
+  pre .st  { color: #ce9178; }
+  pre .vs  { color: #9cdcfe; }
+  pre .fn  { color: #dcdcaa; }
+  pre .num { color: #b5cea8; }
+  pre .vs-col  { color: #60a5fa; }
+  pre .gh-col  { color: #4ade80; }
+  pre .syn-col { color: #fbbf24; }
+  pre .uv-col  { color: #c084fc; }
+  .code-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); margin-bottom: 4px; margin-top: .75rem; }
+
+  /* ── Flow steps ── */
+  .flow { display: flex; flex-direction: column; }
+  .flow-step { display: flex; gap: 12px; position: relative; }
+  .flow-step:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: -8px; width: 2px; background: var(--border); }
+  .flow-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 4px; }
+  .flow-body { flex: 1; padding-bottom: 1.25rem; }
+  .flow-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .flow-detail { font-size: 12px; color: var(--text2); line-height: 1.6; }
+  .fn-vs  { background: var(--vs-light);  color: #1d4ed8; }
+  .fn-git { background: var(--git-light); color: #9a1e05; }
+  .fn-gh  { background: var(--gh-light);  color: #14532d; }
+  .fn-syn { background: var(--syn-light); color: #78350f; }
+  .fn-uv  { background: var(--uv-light);  color: #4c1d95; }
+
+  /* ── Remote push row ── */
+  .remote-row { display: flex; align-items: center; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+  .remote-row:last-child { border-bottom: none; }
+  .remote-pill { display: flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; min-width: 130px; }
+  .rp-gh  { background: var(--gh-light);  color: #14532d; }
+  .rp-syn { background: var(--syn-light); color: #78350f; }
+  .remote-cmd { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text2); flex: 1; }
+  .remote-note { font-size: 11px; color: var(--text3); white-space: nowrap; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 10px; color: var(--text3); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid var(--border); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td.key { color: var(--text2); font-size: 12px; white-space: nowrap; }
+  td code, th code { font-family: 'Consolas', monospace; font-size: 11px; background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--border); }
+
+  /* ── Progress ── */
+  .progress-wrap { background: var(--bg); border-radius: 99px; height: 8px; overflow: hidden; margin-top: 4px; }
+  .progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #16a34a); }
+
+  /* ── Pattern blocks ── */
+  .pattern { border-left: 3px solid var(--border2); padding-left: .875rem; margin: .5rem 0; }
+  .pattern.warn { border-color: #ef4444; }
+  .pattern.ok   { border-color: #22c55e; }
+  .pattern-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .warn .pattern-label { color: #dc2626; }
+  .ok   .pattern-label { color: #16a34a; }
+
+  /* ── Warning box ── */
+  .warn-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: var(--radius-sm); padding: .6rem .875rem; font-size: 12px; color: #78350f; margin: .5rem 0; line-height: 1.5; }
+  .info-box { background: #eff6ff; border: 1px solid #3b82f6; border-radius: var(--radius-sm); padding: .6rem .875rem; font-size: 12px; color: #1e3a8a; margin: .5rem 0; line-height: 1.5; }
+
+  /* ── Section grid ── */
+  .section-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .5rem; }
+  .section-tile { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .75rem 1rem; display: flex; align-items: center; gap: 10px; }
+  .section-tile .st-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .st-done { background: #22c55e; }
+  .st-pending { background: #f59e0b; }
+  .section-tile .st-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .section-tile .st-sub { font-size: 11px; color: var(--text3); }
+
+  /* ── Connector arrow ── */
+  .arrow-line { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); padding: .25rem 0; }
+  .arrow-line::before { content: ''; display: block; height: 2px; flex: 1; background: var(--border); }
+  .arrow-line::after { content: '▶'; font-size: 10px; }
+
+  /* ── Alias chip ── */
+  .alias-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--uv-light); color: #4c1d95; border-radius: var(--radius-sm); padding: 3px 8px; font-family: 'Consolas', monospace; font-size: 12px; margin: 2px; }
+
+  /* ── Header color strip ── */
+  .color-strip { height: 4px; border-radius: 2px; margin-bottom: 1rem; }
+  .cs-vs  { background: var(--vs); }
+  .cs-git { background: var(--git); }
+  .cs-gh  { background: var(--gh); }
+  .cs-syn { background: var(--syn); }
+  .cs-uv  { background: var(--uv); }
+  .cs-mar { background: var(--mar); }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  h2 { font-size: 16px; font-weight: 600; color: var(--text); margin: 1.5rem 0 .75rem; }
+  h2:first-child { margin-top: 0; }
+  h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin: 1rem 0 .5rem; text-transform: uppercase; letter-spacing: .04em; }
+  p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: .75rem; }
+
+  /* ── Branch diagram ── */
+  .branch-vis { display: flex; flex-direction: column; gap: 6px; margin: .5rem 0; }
+  .branch-row { display: flex; align-items: center; gap: 8px; font-family: 'Consolas', monospace; font-size: 12px; }
+  .branch-icon { color: var(--text3); width: 20px; text-align: center; }
+  .branch-name { color: #569cd6; }
+  .branch-hash { color: #6a9955; font-size: 11px; }
+  .branch-note { color: var(--text3); font-size: 11px; }
+
+  /* print / responsive */
+  @media (max-width: 700px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .main { padding: 1rem; }
+  }
+
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="repo-name">python-fundamentals-fb</div>
+    <div class="repo-sub">Migration Spec v4 · Mind Over Metadata LLC</div>
+  </div>
+  <div class="nav-section">Spec Sections</div>
+  <a class="nav-item active" onclick="show('s-overview')">
+    <span class="nav-dot nd-gray"></span> §0–1 Overview
+  </a>
+  <a class="nav-item" onclick="show('s-toolchain')">
+    <span class="nav-dot nd-uv"></span> §2 Toolchain
+  </a>
+  <a class="nav-item" onclick="show('s-vscode')">
+    <span class="nav-dot nd-vs"></span> §3 VS Code Workspace
+  </a>
+  <a class="nav-item" onclick="show('s-git')">
+    <span class="nav-dot nd-git"></span> §4 Git Workflow
+  </a>
+  <a class="nav-item" onclick="show('s-dual-remote')">
+    <span class="nav-dot nd-syn"></span> §5 Dual Remote
+  </a>
+  <a class="nav-item" onclick="show('s-marimo')">
+    <span class="nav-dot nd-mar"></span> §6 Marimo Runtime
+  </a>
+  <a class="nav-item" onclick="show('s-dag')">
+    <span class="nav-dot nd-mar"></span> §7 DAG Conflicts
+  </a>
+  <div class="nav-section">Operations</div>
+  <a class="nav-item" onclick="show('s-smoke')">
+    <span class="nav-dot nd-mar"></span> §8 Smoke Testing
+  </a>
+  <a class="nav-item" onclick="show('s-lessons')">
+    <span class="nav-dot nd-gray"></span> §9 Lessons Learned
+  </a>
+  <a class="nav-item" onclick="show('s-scripts')">
+    <span class="nav-dot nd-gray"></span> §10 Scripts
+  </a>
+  <a class="nav-item" onclick="show('s-adr-pending')">
+    <span class="nav-dot nd-gray"></span> §11 ADR Pending
+  </a>
+  <a class="nav-item" onclick="show('s-data')">
+    <span class="nav-dot nd-gray"></span> §12 Data Files
+  </a>
+  <a class="nav-item" onclick="show('s-runbook')">
+    <span class="nav-dot nd-gray"></span> §13 Runbook
+  </a>
+  <a class="nav-item" onclick="show('s-locked')">
+    <span class="nav-dot nd-gray"></span> §14 Locked Decisions
+  </a>
+  <a class="nav-item" onclick="show('s-aliases')">
+    <span class="nav-dot nd-uv"></span> §15 Aliases
+  </a>
+  <a class="nav-item" onclick="show('s-trifecta')">
+    <span class="nav-dot nd-gray"></span> §16 Output Trifecta
+  </a>
+  <a class="nav-item" onclick="show('s-manifest')">
+    <span class="nav-dot nd-syn"></span> §17 Data Manifest
+  </a>
+  <div class="nav-section">Appendices</div>
+  <a class="nav-item" onclick="show('s-adr060')">
+    <span class="nav-dot nd-syn"></span> ADR-060 Backup Strategy
+  </a>
+  <a class="nav-item" onclick="show('s-adr036')">
+    <span class="nav-dot nd-uv"></span> ADR-036 Rclone
+  </a>
+  <a class="nav-item" onclick="show('s-adr038')">
+    <span class="nav-dot nd-uv"></span> ADR-038 RustFS
+  </a>
+  <a class="nav-item" onclick="show('s-adr046')">
+    <span class="nav-dot nd-gray"></span> ADR-046 Disk Topology
+  </a>
+  <a class="nav-item" onclick="show('s-adr047')">
+    <span class="nav-dot nd-syn"></span> ADR-047 Backup Gov.
+  </a>
+</nav>
+<main class="main">
+
+<section class="section active" id="s-overview">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Overview &amp; Architecture</h1>
+    <p>Sections 0–1: What this repo is, what's new in v4</p>
+  </div>
+  <p>v4 is a <strong>platinum rewrite</strong> — same verified content as v6, rewritten to the documentation standard established in <code>Section_1_overview_architecture.md</code> (ACES D⁴ Database Design). Interim spec versions v4 and v5 were never accepted as complete. v6 had the correct content but the wrong style. This is the first version that meets both content and quality standards.</p>
+<p><strong>What it is:</strong></p>
+<p style="margin-left:1rem">• A complete, styled rewrite of all 17 sections plus Appendix A</p>
+<p style="margin-left:1rem">• Output trifecta: markdown (authoritative) + docx + html</p>
+<p style="margin-left:1rem">• Platinum-standard formatting: emoji headers, anchor TOC, governing principles, ASCII diagrams, structured comparison tables</p>
+<p><strong>What it is not:</strong></p>
+<p style="margin-left:1rem">• It is not a content revision — all facts verified against repo state 2026-05-04</p>
+<p style="margin-left:1rem">• It is not a new specification — the locked decisions table (§14) is unchanged</p>
+<p style="margin-left:1rem">• It is not a style-only reskin — critical corrections from 2026-05-03/04 are embedded in every relevant section</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Change</th>
+<th>Section</th>
+</tr>
+<tr>
+<td class="key">Platinum documentation standard applied to all 17 sections</td>
+<td>All</td>
+</tr>
+<tr>
+<td class="key">Network topology table — eliminates SSH port trial-and-error</td>
+<td>§5.7</td>
+</tr>
+<tr>
+<td class="key">Synology DSM 7.2.2 OpenSSH 8.2 quirks — <code>scp -O</code> requirement</td>
+<td>§13.9</td>
+</tr>
+<tr>
+<td class="key">Data manifest pattern — LFS-vs-external explanation</td>
+<td>§17</td>
+</tr>
+<tr>
+<td class="key"><code>data/MANIFEST.toml</code> — two large CSVs cataloged with SHA-256</td>
+<td>§17.4</td>
+</tr>
+<tr>
+<td class="key"><code>scripts/fetch_data.sh</code> — repeatable data acquisition with verification</td>
+<td>§17.5</td>
+</tr>
+<tr>
+<td class="key">ADR-060 included verbatim — backup tier rationale</td>
+<td>Appendix A</td>
+</tr>
+<tr>
+<td class="key">Updated <code>.gitignore</code> — specific large files only, small CSVs committable</td>
+<td>§17.6</td>
+</tr>
+<tr>
+<td class="key">README data documentation — students aren&#x27;t stranded</td>
+<td>§17.7</td>
+</tr>
+</table></div>
+<h2>1.1 What This Repo Is</h2>
+<p><code>python-fundamentals-fb</code> is a Jupyter → Marimo migration of Fred Baptiste&#x27;s Python Fundamentals Udemy course. Every original <code>.ipynb</code> notebook has been converted to a Marimo <code>.py</code> notebook, governed by <code>uv</code> as the exclusive toolchain, and deployed under a dual-remote git pattern (GitHub + Synology).</p>
+<p><strong>In one sentence:</strong> 118 Marimo notebooks running in learning mode (<code>auto_instantiate = false</code>), managed by <code>uv</code>, pushed to two remotes every commit, with large data files on a sovereign NAS and a manifest in the repo.</p>
+<p><strong>What it is not:</strong></p>
+<p style="margin-left:1rem">• It is not a fork of Baptiste&#x27;s repo — it is a migration to a different runtime</p>
+<p style="margin-left:1rem">• It is not a pip-managed project — <code>uv</code> is the only permitted package manager</p>
+<p style="margin-left:1rem">• It is not a monorepo — each course gets its own repo (<code>python-deepdive-fb</code>, <code>pydantic-v2-essentials</code>)</p>
+<h2>1.2 Repo Quick-Reference</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key"><strong>Target runtime</strong></td>
+<td>Marimo ≥ 0.23.4</td>
+</tr>
+<tr>
+<td class="key"><strong>Toolchain</strong></td>
+<td><code>uv</code> · <code>uvx</code> · <code>Ruff</code> exclusively. <code>pip</code> and <code>pipx</code> prohibited.</td>
+</tr>
+<tr>
+<td class="key"><strong>Project root (WSL)</strong></td>
+<td><code>/mnt/e/WSLData/Projects/python-fundamentals-fb</code></td>
+</tr>
+<tr>
+<td class="key"><strong>Project root (Windows)</strong></td>
+<td><code>E:\WSLData\Projects\python-fundamentals-fb</code></td>
+</tr>
+<tr>
+<td class="key"><strong>GitHub</strong></td>
+<td><code>QCadjunct/python-fundamentals-fb</code></td>
+</tr>
+<tr>
+<td class="key"><strong>Synology git</strong></td>
+<td><code>ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td>
+</tr>
+<tr>
+<td class="key"><strong>Synology data</strong></td>
+<td><code>/volume1/workspace/python-fundamentals-fb/</code> (large CSVs)</td>
+</tr>
+<tr>
+<td class="key"><strong>Obsidian vault</strong></td>
+<td><code>E:\Obsidian\udemy-fred-baptiste</code></td>
+</tr>
+<tr>
+<td class="key"><strong>Notebooks</strong></td>
+<td>118 <code>.py</code> files under <code>notebooks/</code></td>
+</tr>
+<tr>
+<td class="key"><strong>Last commit</strong></td>
+<td><code>f532b80</code> (Ignore egg-info build output)</td>
+</tr>
+<tr>
+<td class="key"><strong>Python</strong></td>
+<td>3.12</td>
+</tr>
+<tr>
+<td class="key"><strong>Shell alias</strong></td>
+<td><code>fb-fund</code></td>
+</tr>
+</table></div>
+<div class="info-box"><strong>Governing principle:</strong> KISS — Keep It Simple and Standard. Every tooling choice defaults to the simplest option that satisfies the requirement. No tool earns its place without a concrete problem it solves.</div>
+</section>
+
+<section class="section" id="s-toolchain">
+  <div class="color-strip cs-uv"></div>
+  <div class="section-header">
+    <h1>Toolchain</h1>
+    <p>Section 2: uv-only rule, pyproject.toml, UV_LINK_MODE</p>
+  </div>
+  <h2>2.1 The uv-Only Rule</h2>
+<p>This project uses <code>uv</code> as the <strong>exclusive</strong> Python toolchain. <code>pip</code>, <code>pipx</code>, and <code>conda</code> are prohibited. There is no exception mechanism.</p>
+<pre>uv venv --python 3.12
+uv pip install -e .
+.venv/bin/marimo edit --no-sandbox notebooks/03-python-basics/basic_data_types.py
+uvx ruff check notebooks/</pre>
+<div class="info-box"><strong>Governing principle:</strong> One toolchain, no alternatives. <code>uv</code> handles virtual environment creation, dependency installation, tool execution (<code>uvx</code>), and linting delegation to <code>ruff</code>. If <code>uv</code> cannot do it, the project does not need it.</div>
+<h2>2.2 pyproject.toml — Four Required Blocks</h2>
+<p>Every block below must be present. Missing any one causes subtle failures that waste session time.</p>
+<pre>[tool.uv]
+package = false
+
+[tool.setuptools]
+packages = []
+
+[tool.ruff.lint]
+line-length = 88
+target-version = &quot;py312&quot;
+select = [&quot;E&quot;, &quot;F&quot;, &quot;I&quot;]
+
+[tool.marimo.runtime]
+auto_instantiate = false      <span class="cm"># cells unrun on open (learning mode)</span></pre>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Block</th>
+<th>Why It Exists</th>
+</tr>
+<tr>
+<td class="key"><code>[tool.uv]</code></td>
+<td>Tells <code>uv</code> this is a non-package project — no build step</td>
+</tr>
+<tr>
+<td class="key"><code>[tool.setuptools]</code></td>
+<td>Prevents <code>setuptools</code> from scanning for packages on editable install</td>
+</tr>
+<tr>
+<td class="key"><code>[tool.ruff.lint]</code></td>
+<td>Governs lint rules. <code>select = [&quot;E&quot;, &quot;F&quot;, &quot;I&quot;]</code> = pyflakes + pycodestyle + isort</td>
+</tr>
+<tr>
+<td class="key"><code>[tool.marimo.runtime]</code></td>
+<td>Learning mode — cells don&#x27;t auto-execute on open (see §6)</td>
+</tr>
+</table></div>
+<h2>2.3 UV_LINK_MODE</h2>
+<pre>&lt;a id=&quot;bashrc&quot;&gt;&lt;/a&gt;
+<span class="cm"># ~/.bashrc</span>
+export UV_LINK_MODE=copy</pre>
+<p><strong>Why:</strong> On WSL2 with NTFS-mounted drives, <code>uv</code> defaults to hardlinks. Cross-filesystem hardlinks fail silently. <code>UV_LINK_MODE=copy</code> forces file copies — slower, but reliable.</p>
+</section>
+
+<section class="section" id="s-vscode">
+  <div class="color-strip cs-vs"></div>
+  <div class="section-header">
+    <h1>VS Code Workspace</h1>
+    <p>Section 3: Workspace file, multi-root, cross-vault workflow</p>
+  </div>
+  <div class="info-box"><strong>⚠️ Always open by workspace file — never by folder.</strong></div>
+<div class="info-box"><strong>⚠️ The <code>.code-workspace</code> file MUST be committed at repo root.</strong></div>
+<p>Opening by folder bypasses interpreter and Marimo path settings. The workspace file is the authoritative entry point.</p>
+<h2>3.1 Workspace File Template</h2>
+<pre>// python-fundamentals-fb.code-workspace
+{
+  &quot;folders&quot;: [{ &quot;path&quot;: &quot;.&quot; }],
+  &quot;settings&quot;: {
+    &quot;python.defaultInterpreterPath&quot;: &quot;${workspaceFolder}/.venv/bin/python&quot;,
+    &quot;python.terminal.activateEnvironment&quot;: true,
+    &quot;[python]&quot;: {
+      &quot;editor.defaultFormatter&quot;: &quot;charliermarsh.ruff&quot;
+    },
+    &quot;marimo.marimoPath&quot;: &quot;${workspaceFolder}/.venv/bin/marimo&quot;
+  }
+}</pre>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Setting</th>
+<th>Purpose</th>
+</tr>
+<tr>
+<td class="key"><code>python.defaultInterpreterPath</code></td>
+<td>Points VS Code at the project venv, not system Python</td>
+</tr>
+<tr>
+<td class="key"><code>python.terminal.activateEnvironment</code></td>
+<td>Auto-activates venv in integrated terminal</td>
+</tr>
+<tr>
+<td class="key"><code>editor.defaultFormatter</code></td>
+<td>Ruff handles all Python formatting</td>
+</tr>
+<tr>
+<td class="key"><code>marimo.marimoPath</code></td>
+<td>Prevents PATH shadowing (see §13.4)</td>
+</tr>
+</table></div>
+<h2>3.2 Multi-Root Meta Workspace (Option B)</h2>
+<p>For sessions that span multiple Baptiste courses and the Obsidian vault, a multi-root workspace lives under the fundamentals repo:</p>
+<pre>// python-fundamentals-fb/workspaces/fred-baptiste-courses.code-workspace
+{
+  &quot;folders&quot;: [
+    { &quot;name&quot;: &quot;Python Fundamentals&quot;, &quot;path&quot;: &quot;..&quot; },
+    { &quot;name&quot;: &quot;Python Deep Dive&quot;,    &quot;path&quot;: &quot;../../python-deepdive-fb&quot; },
+    { &quot;name&quot;: &quot;Pydantic v2&quot;,         &quot;path&quot;: &quot;../../pydantic-v2-essentials&quot; },
+    { &quot;name&quot;: &quot;Vault Notes&quot;,         &quot;path&quot;: &quot;../../../Obsidian/udemy-fred-baptiste&quot; }
+  ],
+  &quot;settings&quot;: {
+    &quot;python.terminal.activateEnvironment&quot;: true,
+    &quot;[python]&quot;: { &quot;editor.defaultFormatter&quot;: &quot;charliermarsh.ruff&quot; }
+  }
+}</pre>
+<div class="info-box"><strong>Governing principle:</strong> The multi-root workspace is a convenience, not a coupling. Each repo retains its own <code>.code-workspace</code> at root. The meta workspace adds a cross-project view — it does not replace per-project workspace files.</div>
+<h2>3.3 Cross-Vault Workflow</h2>
+<p>This is a discipline pattern, not a code integration. The workflow alternates between the code repo and the Obsidian vault:</p>
+<pre>fb-fund                          <span class="cm"># cd to code repo</span>
+.venv/bin/marimo edit ...        <span class="cm"># teach the lesson</span>
+fb-notes                         <span class="cm"># cd to vault</span>
+&lt;a id=&quot;write-reflection-note&quot;&gt;&lt;/a&gt;
+<span class="cm"># write reflection note</span>
+git add ... &amp;&amp; git commit ...
+git push synology main &amp;&amp; git push github main</pre>
+<p><strong>What it is:</strong> A post-session discipline — finish the lesson, write a reflection, push both repos.</p>
+<p><strong>What it is not:</strong> An automated sync. There is no code that ties the vault to the code repo.</p>
+<h2>3.4 Opening the Workspace</h2>
+<pre>fb-fund
+code python-fundamentals-fb.code-workspace
+.venv/bin/marimo edit --no-sandbox notebooks/03-python-basics/basic_data_types.py</pre>
+<h2>3.5 Shell Aliases</h2>
+<pre>alias fb-fund=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/python-fundamentals-fb&#x27;</span>
+alias fb-deepdive=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/python-deepdive-fb&#x27;</span>
+alias fb-pydantic=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/pydantic-v2-essentials&#x27;</span>
+alias fb-notes=&<span class="cm">#x27;cd /mnt/e/Obsidian/udemy-fred-baptiste&#x27;</span></pre>
+<p>See §15 for the extended alias library.</p>
+</section>
+
+<section class="section" id="s-git">
+  <div class="color-strip cs-git"></div>
+  <div class="section-header">
+    <h1>Git Branch-Per-Section</h1>
+    <p>Section 4: Branch workflow, merge style, locked git decisions</p>
+  </div>
+  <div class="info-box"><strong>⚠️ WSL2 is the authoritative git interface. Never PowerShell.</strong></div>
+<h2>4.1 The Workflow</h2>
+<pre>git checkout -b section/14-builtin-functions
+git add notebooks/14-builtin-functions/
+git commit -m &quot;feat(14): builtin_functions — r1/c1 loop var scoping&quot;
+
+git checkout main
+git merge --no-ff section/14-builtin-functions
+git commit -m &quot;feat(14): complete Built-In Functions — N notebooks&quot;
+
+git push github main
+git push synology main</pre>
+<pre>main ──────●─────────●── merge ──● push both
+            \       /
+             section/14 ── commits ──</pre>
+<div class="info-box"><strong>Governing principle:</strong> <code>--no-ff</code> always. Fast-forward merges lose the branch boundary in <code>git log</code>. Non-fast-forward preserves the section as a discrete unit of work, visible in the graph.</div>
+<h2>4.2 Locked Git Decisions</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Decision</th>
+<th>Rule</th>
+</tr>
+<tr>
+<td class="key">Repo name</td>
+<td><code>python-fundamentals-fb</code></td>
+</tr>
+<tr>
+<td class="key">Merge style</td>
+<td><code>--no-ff</code> always</td>
+</tr>
+<tr>
+<td class="key">Git interface</td>
+<td>WSL2 terminal only</td>
+</tr>
+<tr>
+<td class="key">Remote push</td>
+<td>Both remotes every commit</td>
+</tr>
+</table></div>
+</section>
+
+<section class="section" id="s-dual-remote">
+  <div class="color-strip cs-syn"></div>
+  <div class="section-header">
+    <h1>Dual Remote — GitHub + Synology</h1>
+    <p>Section 5: Push sequence, SSH, network topology, backup tiers</p>
+  </div>
+  <h2>5.1 Remote Configuration</h2>
+<pre>git remote -v
+&lt;a id=&quot;github-gitgithubcomqcadjunctpython-fundamentals-fbgit-fetchpush&quot;&gt;&lt;/a&gt;
+<span class="cm"># github    git@github.com:QCadjunct/python-fundamentals-fb.git (fetch/push)</span>
+&lt;a id=&quot;synology-sshsynologyvolume1gitpython-fundamentals-fbgit-fetchpush&quot;&gt;&lt;/a&gt;
+<span class="cm"># synology  ssh://synology:/volume1/git/python-fundamentals-fb.git (fetch/push)</span></pre>
+<p>Two named remotes. Two explicit pushes. No unified origin.</p>
+<h2>5.2 GitHub Remote</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key">Name</td>
+<td><code>github</code></td>
+</tr>
+<tr>
+<td class="key">URL</td>
+<td><code>git@github.com:QCadjunct/python-fundamentals-fb.git</code></td>
+</tr>
+<tr>
+<td class="key">Auth</td>
+<td>SSH key (not HTTPS)</td>
+</tr>
+<tr>
+<td class="key">Role</td>
+<td>Public/cloud mirror</td>
+</tr>
+</table></div>
+<h2>5.3 Synology Remote</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key">Name</td>
+<td><code>synology</code></td>
+</tr>
+<tr>
+<td class="key">URL</td>
+<td><code>ssh://synology:/volume1/git/python-fundamentals-fb.git</code></td>
+</tr>
+<tr>
+<td class="key">Auth</td>
+<td>SSH publickey via Tailscale mesh</td>
+</tr>
+<tr>
+<td class="key">Role</td>
+<td>Tier 1 sovereign primary (ADR-060)</td>
+</tr>
+</table></div>
+<h2>5.4 Canonical Push Sequence</h2>
+<pre>git push github main      <span class="cm"># cloud mirror first</span>
+git push synology main    <span class="cm"># NAS sovereign primary second</span></pre>
+<p><strong>Why two remotes — sovereignty vs redundancy:</strong></p>
+<p style="margin-left:1rem">• <strong>GitHub</strong> — public-facing mirror. Students clone from it. If GitHub vanishes, your IP is intact on Synology.</p>
+<p style="margin-left:1rem">• <strong>Synology</strong> — sovereign primary on your NAS, your network, your keys. Tier 1 recovery per ADR-060.</p>
+<p><strong>Why GitHub first:</strong></p>
+<p>GitHub is the more likely failure point (auth, rate limits, TOS). Pushing first surfaces problems before Synology is touched. If GitHub fails, retry it; both remotes still match the prior HEAD.</p>
+<p><strong>Why two-explicit-pushes beats unified-origin (see §13.6):</strong></p>
+<p>Unified origin couples failure — if either fails, the whole push fails. Two-explicit-pushes keeps remotes independent. If GitHub is down and Synology is up, your sovereign primary still gets the commit. Independence beats ergonomic tidiness when one remote is your IP guardian.</p>
+<div class="info-box"><strong>Governing principle:</strong> Every commit exists on two remotes before the session ends. Sovereignty and redundancy are separate concerns — the Synology remote guarantees sovereignty; the GitHub remote guarantees availability. Neither is optional.</div>
+<h2>5.5 SSH Troubleshooting</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Symptom</th>
+<th>Fix</th>
+</tr>
+<tr>
+<td class="key">GitHub: Permission denied</td>
+<td><code>eval $(ssh-agent) &amp;&amp; ssh-add ~/.ssh/id_ed25519</code></td>
+</tr>
+<tr>
+<td class="key">Verify GitHub SSH</td>
+<td><code>ssh -T git@github.com</code></td>
+</tr>
+<tr>
+<td class="key">Synology: connection refused</td>
+<td><code>tailscale status</code></td>
+</tr>
+<tr>
+<td class="key">Verify Synology SSH</td>
+<td><code>ssh synology echo ok</code></td>
+</tr>
+</table></div>
+<h2>5.6 Backup Tier Context (ADR-060)</h2>
+<p>See Appendix A for the full ADR text. Summary:</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Tier</th>
+<th>System</th>
+<th>Coverage</th>
+</tr>
+<tr>
+<td class="key">1 (primary)</td>
+<td>Synology DS920+</td>
+<td>Git bare repos · large data files · vaults</td>
+</tr>
+<tr>
+<td class="key">2</td>
+<td>Acronis</td>
+<td>Five-node system images</td>
+</tr>
+<tr>
+<td class="key">3</td>
+<td>OneDrive</td>
+<td>M365 documents</td>
+</tr>
+<tr>
+<td class="key">4 (cloud)</td>
+<td>iDrive 5TB</td>
+<td>NAS mirror · zero-knowledge encrypted</td>
+</tr>
+</table></div>
+<h2>5.7 Network Topology — Synology and FreedomTower SSH</h2>
+<div class="info-box"><strong>Purpose:</strong> Eliminates SSH port trial-and-error. Paste this table to establish topology context in future sessions.</div>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Host alias</th>
+<th>IP</th>
+<th>Port</th>
+<th>User</th>
+<th>Auth</th>
+<th>Purpose</th>
+</tr>
+<tr>
+<td class="key"><code>synology</code></td>
+<td>192.168.1.242</td>
+<td>2200</td>
+<td>pheller</td>
+<td>publickey</td>
+<td>Shell access · git push (default)</td>
+</tr>
+<tr>
+<td class="key"><code>synology2</code></td>
+<td>192.168.1.167</td>
+<td>2201</td>
+<td>pheller</td>
+<td>publickey</td>
+<td>Secondary access</td>
+</tr>
+<tr>
+<td class="key"><code>synology-admin</code></td>
+<td>192.168.1.242</td>
+<td>2200</td>
+<td>QCadjunct</td>
+<td>publickey</td>
+<td>DSM admin operations</td>
+</tr>
+<tr>
+<td class="key"><code>synology-git</code></td>
+<td>192.168.1.242</td>
+<td>2201</td>
+<td>pheller</td>
+<td>publickey</td>
+<td>Bare repo SSH (alternate)</td>
+</tr>
+<tr>
+<td class="key"><code>localhost</code> (FreedomTower)</td>
+<td>n/a</td>
+<td>2220</td>
+<td>pheller</td>
+<td>publickey</td>
+<td>Local sshd</td>
+</tr>
+</table></div>
+<p><strong>Synology details:</strong></p>
+<p style="margin-left:1rem">• DSM version: 7.2.2 build 72806 (current as of 2026-05-04)</p>
+<p style="margin-left:1rem">• OpenSSH version: 8.2 (older — drives the <code>scp -O</code> requirement, see §13.9)</p>
+<p style="margin-left:1rem">• Shared folders relevant to this repo:</p>
+<p>  - <code>/volume1/git/python-fundamentals-fb.git</code> — bare repo</p>
+<p>  - <code>/volume1/workspace/python-fundamentals-fb/</code> — large CSV staging</p>
+<p><strong>Configuration source:</strong> <code>~/.ssh/config</code> on FreedomTower defines all aliases. Verify with:</p>
+<pre>cat ~/.ssh/config | grep -A5 -i synology</pre>
+</section>
+
+<section class="section" id="s-marimo">
+  <div class="color-strip cs-mar"></div>
+  <div class="section-header">
+    <h1>Marimo Runtime Configuration</h1>
+    <p>Section 6: Config precedence, learning mode, anti-patterns</p>
+  </div>
+  <div class="info-box"><strong>CRITICAL:</strong> Marimo accepts <code><strong>kwargs</code> to <code>marimo.App(...)</code> and </strong>silently ignores** keys it doesn&#x27;t recognize. Runtime behavior must be configured at the project level via <code>pyproject.toml</code>.</div>
+<p><strong>What this means:</strong> If you write <code>marimo.App(auto_instantiate=False)</code>, Marimo will parse the file, see the kwarg, and do nothing with it. Your notebook will auto-execute. There is no error, no warning, no indication that the setting was ignored.</p>
+<h2>6.1 Configuration Precedence</h2>
+<pre>Script metadata (rejected for runtime keys — security)
+        ↓
+pyproject.toml  ← THIS IS WHERE RUNTIME CONFIG LIVES
+        ↓
+~/.config/marimo/marimo.toml  (global fallback)</pre>
+<p>Per-notebook script-metadata <code>[tool.marimo.runtime]</code> blocks are <strong>rejected</strong> with:</p>
+<pre>[W reader:45] tool.marimo.runtime.auto_instantiate in script metadata
+              is ignored for security reasons</pre>
+<h2>6.2 The Learning-Mode Setting</h2>
+<pre>&lt;a id=&quot;pyprojecttoml-at-repo-root&quot;&gt;&lt;/a&gt;
+<span class="cm"># pyproject.toml — at repo root</span>
+[tool.marimo.runtime]
+auto_instantiate = false</pre>
+<p>Verify:</p>
+<pre>.venv/bin/marimo config show | head -10
+&lt;a id=&quot;should-show&quot;&gt;&lt;/a&gt;
+<span class="cm"># Should show:</span>
+&lt;a id=&quot;project-overrides-from-mntewsldataprojectspython-fundamentals-fbpyprojecttoml&quot;&gt;&lt;/a&gt;
+<span class="cm"># 📁 Project overrides from /mnt/e/WSLData/Projects/python-fundamentals-fb/pyproject.toml</span>
+&lt;a id=&quot;runtime&quot;&gt;&lt;/a&gt;
+<span class="cm"># [runtime]</span>
+&lt;a id=&quot;autoinstantiate-false&quot;&gt;&lt;/a&gt;
+<span class="cm"># auto_instantiate = false</span></pre>
+<p><strong>What &quot;learning mode&quot; means:</strong> Cells are unrun when you open a notebook. You must explicitly run each cell. This forces engagement with the material — you read the code, predict the output, then verify.</p>
+<h2>6.3 Anti-Patterns</h2>
+<pre>&lt;a id=&quot;kwarg-in-app-silently-ignored&quot;&gt;&lt;/a&gt;
+<span class="cm"># ❌ kwarg in App() — silently ignored</span>
+app = marimo.App(auto_instantiate=False)
+
+&lt;a id=&quot;script-metadata-rejected-for-security&quot;&gt;&lt;/a&gt;
+<span class="cm"># ❌ script metadata — rejected for security</span>
+&lt;a id=&quot;script&quot;&gt;&lt;/a&gt;
+<span class="cm"># /// script</span>
+&lt;a id=&quot;toolmarimoruntime&quot;&gt;&lt;/a&gt;
+<span class="cm"># [tool.marimo.runtime]</span>
+&lt;a id=&quot;autoinstantiate-false-1&quot;&gt;&lt;/a&gt;
+<span class="cm"># auto_instantiate = false</span>
+&lt;a id=&quot;&quot;&gt;&lt;/a&gt;
+<span class="cm"># ///</span></pre>
+<p><strong>Both fail silently or with a warning.</strong> Neither configures the runtime. Only <code>pyproject.toml</code> works.</p>
+<h2>6.4 Schema Discovery</h2>
+<pre>.venv/bin/python -c &quot;
+from marimo._config.config import RuntimeConfig
+import dataclasses
+for f in dataclasses.fields(RuntimeConfig):
+    print(f.name, &<span class="cm">#x27;=&#x27;, f.default)</span>
+&quot;</pre>
+<div class="info-box"><strong>Forward reference (Pydantic v2):</strong> Same pattern works on Pydantic models via <code>MyModel.model_fields</code>. Schema introspection beats schema guessing in either world.</div>
+</section>
+
+<section class="section" id="s-dag">
+  <div class="color-strip cs-mar"></div>
+  <div class="section-header">
+    <h1>DAG Conflict Resolution</h1>
+    <p>Section 7: 118 notebooks, Patterns A–E</p>
+  </div>
+  <h2>7.1 Notebook Count</h2>
+<p>118 <code>.py</code> files under <code>notebooks/</code>. All contain <code>marimo.App(</code>. Verified 2026-05-03.</p>
+<p>Marimo&#x27;s reactive runtime builds a DAG (Directed Acyclic Graph) from cell-level variable definitions. Every variable name must be unique across the entire notebook. Conflicts that Jupyter silently tolerates — reusing <code>x</code> in two cells — become hard errors in Marimo.</p>
+<div class="info-box"><strong>Governing principle:</strong> The DAG is a feature, not a bug. It forces clean variable hygiene. The resolution patterns below are the vocabulary for working with it.</div>
+<h2>7.2 Pattern A — Numeric Suffix</h2>
+<p>When the same conceptual variable appears in multiple cells for demonstration purposes:</p>
+<pre>x_1 = 10        <span class="cm"># cell 3</span>
+x_2 = &<span class="cm">#x27;hello&#x27;   # cell 7</span></pre>
+<h2>7.3 Pattern B — Loop Variable Uniqueness</h2>
+<div class="info-box"><strong>For loop variables leak out of <code>for</code> loops into Marimo&#x27;s DAG cell scope. The static scanner does NOT catch this.</strong></div>
+<p>This is the most dangerous pattern because it produces no warning. Two cells with <code>for r in range(...)</code> silently conflict.</p>
+<pre>&lt;a id=&quot;wrong-both-cells-export-r&quot;&gt;&lt;/a&gt;
+<span class="cm"># ❌ WRONG — both cells export &#x27;r&#x27;</span>
+for r in range(len(m1)): ...    <span class="cm"># cell A</span>
+for r in range(len(m2)): ...    <span class="cm"># cell B — CONFLICT</span>
+
+&lt;a id=&quot;correct-unique-loop-vars-per-cell&quot;&gt;&lt;/a&gt;
+<span class="cm"># ✅ CORRECT — unique loop vars per cell</span>
+for r1 in range(len(m1)): ...
+for r2 in range(len(m2)): ...</pre>
+<p><strong>Standard naming convention:</strong> <code>r1/c1</code> · <code>r2/c2</code> · <code>r3/c3</code> · <code>e1/e2/e3</code> · <code>v1/v2/v3/v4</code></p>
+<h2>7.4 Pattern C — Semantic Suffixes</h2>
+<p>When multiple cells demonstrate the same concept across types:</p>
+<pre>a_int   = 10
+a_float = 10.5
+a_str   = &<span class="cm">#x27;hello&#x27;</span></pre>
+<h2>7.5 Pattern D — Class Version Suffixes</h2>
+<p>When a class evolves across cells:</p>
+<pre>class VectorV1: ...
+class VectorV2: ...   <span class="cm"># adds __repr__</span>
+class VectorV3: ...   <span class="cm"># adds __add__</span></pre>
+<h2>7.6 Pattern E — Python Writer Deployment</h2>
+<div class="info-box"><strong>Never use raw bash heredoc for files containing <code>marimo.App</code>, <code>mo.md</code>, or <code>app.run</code>.</strong> Chat clients autolink dotted names — <code>marimo.App</code> becomes <code>[marimo.App](http://marimo.App)</code> — and corrupt the heredoc.</div>
+<pre>python3 &lt;&lt; &<span class="cm">#x27;PYEOF&#x27;</span>
+import pathlib
+pathlib.Path(&quot;notebooks/section/file.py&quot;).write_text(&<span class="cm">#x27;&#x27;&#x27;</span>
+import marimo
+app = marimo.App()
+...
+&<span class="cm">#x27;&#x27;&#x27;)</span>
+PYEOF</pre>
+<p><strong>Why this works:</strong> The Python heredoc processes the file content as a Python string literal. Python does not autolink. The file is written exactly as specified.</p>
+</section>
+
+<section class="section" id="s-smoke">
+  <div class="color-strip cs-mar"></div>
+  <div class="section-header">
+    <h1>Smoke Testing</h1>
+    <p>Section 8: Wave naming, coverage</p>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Script</th>
+<th>Wave</th>
+<th>Coverage</th>
+</tr>
+<tr>
+<td class="key"><code>scripts/smoke_test_wave1.sh</code></td>
+<td>1 (original)</td>
+<td>Sections 22–32</td>
+</tr>
+<tr>
+<td class="key"><code>scripts/smoke_test_wave1_improved.sh</code></td>
+<td>1 (refined)</td>
+<td>Sections 20–32</td>
+</tr>
+<tr>
+<td class="key"><code>scripts/smoke_test_wave2.sh</code></td>
+<td>2</td>
+<td>TBD</td>
+</tr>
+<tr>
+<td class="key"><code>scripts/smoke_test_wave3.sh</code></td>
+<td>3</td>
+<td>TBD</td>
+</tr>
+</table></div>
+<p>Future orchestrator: <code>scripts/smoke_test_all.sh</code> runs all waves.</p>
+<p><strong>Naming rules:</strong></p>
+<p style="margin-left:1rem">• <code>wave{N}</code> prefix — sortable, greppable</p>
+<p style="margin-left:1rem">• <code>_improved</code> suffix optional, for substantive iterations</p>
+<p style="margin-left:1rem">• No silent renames — preserve bisect history</p>
+</section>
+
+<section class="section" id="s-lessons">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Key Lessons Learned</h1>
+    <p>Section 9: Twelve hard-won migration lessons</p>
+  </div>
+  <p>Twelve hard-won lessons from the migration. Each one cost at least one debugging session.</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>#</th>
+<th>Lesson</th>
+<th>Reference</th>
+</tr>
+<tr>
+<td class="key">1</td>
+<td>Loop var leak — use unique names per cell</td>
+<td>§7.3</td>
+</tr>
+<tr>
+<td class="key">2</td>
+<td>Python writer — <code>python3 &lt;&lt; &#x27;PYEOF&#x27;</code>, never raw bash heredoc</td>
+<td>§7.6</td>
+</tr>
+<tr>
+<td class="key">3</td>
+<td>Generator exhaustion — separate vars (<code>squares_1</code>–<code>squares_4</code>)</td>
+<td>—</td>
+</tr>
+<tr>
+<td class="key">4</td>
+<td><code>pyproject.toml</code> needs all four blocks: <code>[tool.uv]</code>, <code>[tool.setuptools]</code>, <code>[tool.ruff.lint]</code>, <code>[tool.marimo.runtime]</code></td>
+<td>§2.2</td>
+</tr>
+<tr>
+<td class="key">5</td>
+<td><code>datetime.utcnow()</code> — Python 3.12 DeprecationWarning expected, non-fatal</td>
+<td>—</td>
+</tr>
+<tr>
+<td class="key">6</td>
+<td>Marimo runtime config lives in <code>pyproject.toml</code>, not <code>App()</code> kwargs</td>
+<td>§6</td>
+</tr>
+<tr>
+<td class="key">7</td>
+<td><code>.code-workspace</code> is a tracked artifact</td>
+<td>§3</td>
+</tr>
+<tr>
+<td class="key">8</td>
+<td>Dual-remote drift — plain <code>git push</code> writes only to upstream</td>
+<td>§13.6</td>
+</tr>
+<tr>
+<td class="key">9</td>
+<td>PATH shadowing — <code>~/.local/bin/marimo</code> shadows <code>.venv/bin/marimo</code></td>
+<td>§13.4</td>
+</tr>
+<tr>
+<td class="key">10</td>
+<td>Schema introspection beats schema guessing</td>
+<td>§6.4</td>
+</tr>
+<tr>
+<td class="key">11</td>
+<td>Synology DSM 7.2.2 OpenSSH 8.2 requires <code>scp -O</code> for transfers</td>
+<td>§13.9</td>
+</tr>
+<tr>
+<td class="key">12</td>
+<td>Large data files belong in external store with manifest, not LFS</td>
+<td>§17</td>
+</tr>
+</table></div>
+</section>
+
+<section class="section" id="s-scripts">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>MOM Scripts Registry</h1>
+    <p>Section 10: MMS-023 through MMS-025</p>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>MMS ID</th>
+<th>Name</th>
+<th>Purpose</th>
+</tr>
+<tr>
+<td class="key">MMS-023</td>
+<td><code>convert/nb_convert.py</code></td>
+<td>Bulk <code>.ipynb</code> → Marimo <code>.py</code> converter</td>
+</tr>
+<tr>
+<td class="key">MMS-024</td>
+<td><code>convert/scan_conflicts.py</code></td>
+<td>Variable redefinition scanner</td>
+</tr>
+<tr>
+<td class="key">MMS-025</td>
+<td><code>scripts/fetch_data.sh</code></td>
+<td>Data manifest acquisition (new in v4)</td>
+</tr>
+</table></div>
+</section>
+
+<section class="section" id="s-adr-pending">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>ADR Pending</h1>
+    <p>Section 11: ADR-061 proposed</p>
+  </div>
+  <p style="margin-left:1rem">• <strong>ADR-061</strong> — Jupyter → Marimo Migration — Fred Baptiste Python Fundamentals</p>
+<p>  - Status: Proposed</p>
+<p>  - Decision: Migrate notebooks to Marimo ≥ 0.23.4 using uv/uvx/Ruff exclusively</p>
+<p>  - Scope: data manifest pattern, <code>/volume1/workspace/</code> data path, ADR-060 backup tier integration</p>
+</section>
+
+<section class="section" id="s-data">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Data Files</h1>
+    <p>Section 12: 8 small committed, 2 large external</p>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Original</th>
+<th>Used In</th>
+<th>Canonical Path</th>
+<th>Tier</th>
+</tr>
+<tr>
+<td class="key">populations.csv</td>
+<td>§30, §31</td>
+<td><code>data/populations.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">world_bank_countries.csv</td>
+<td>§30</td>
+<td><code>data/world_bank_countries.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">daily_quotes.csv</td>
+<td>§30, §31</td>
+<td><code>data/daily_quotes.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">AAPL.csv</td>
+<td>§31</td>
+<td><code>data/AAPL.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">AAPL_data.csv</td>
+<td>§31</td>
+<td><code>data/AAPL_data.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">DEXUSEU.csv</td>
+<td>§31</td>
+<td><code>data/DEXUSEU.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">nasdaq.csv</td>
+<td>§22</td>
+<td><code>data/nasdaq.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">widget_sales.csv</td>
+<td>§32</td>
+<td><code>data/widget_sales.csv</code></td>
+<td>small (committed)</td>
+</tr>
+<tr>
+<td class="key">Morningstar EU Funds.csv</td>
+<td>§30</td>
+<td><code>data/morningstar_eu_funds.csv</code></td>
+<td><strong>large (external — see §17)</strong></td>
+</tr>
+<tr>
+<td class="key">transactions.csv</td>
+<td>§32</td>
+<td><code>data/transactions.csv</code></td>
+<td><strong>large (external — see §17)</strong></td>
+</tr>
+</table></div>
+<div class="info-box"><strong>Governing principle:</strong> Small files commit. Large files manifest. The threshold is practical, not numerical — if <code>git clone</code> becomes painful for a student, the file belongs on the NAS.</div>
+</section>
+
+<section class="section" id="s-runbook">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Operational Runbook</h1>
+    <p>Section 13: Nine failure modes</p>
+  </div>
+  <p>Nine failure modes, each with symptom, root cause, and fix. These are not hypothetical — every entry was triggered during development.</p>
+<h2>13.1 Cells Already Executed on Open</h2>
+<p><strong>Symptom:</strong> Open notebook, every cell shows computed output.</p>
+<p><strong>Cause:</strong> <code>auto_instantiate = false</code> not set at project level in <code>pyproject.toml</code>.</p>
+<p><strong>Fix:</strong></p>
+<pre>[tool.marimo.runtime]
+auto_instantiate = false</pre>
+<p><strong>Verify:</strong> <code>.venv/bin/marimo config show | head -10</code></p>
+<h2>13.2 &quot;Address Already in Use&quot;</h2>
+<p><strong>Symptom (any port):</strong></p>
+<pre>ERROR: [Errno 98] error while attempting to bind on address
+       (&<span class="cm">#x27;127.0.0.1&#x27;, &lt;PORT&gt;): address already in use</span></pre>
+<p><strong>Cause:</strong> Zombie Marimo process. <code>pkill -f marimo</code> may not catch it.</p>
+<p><strong>Fix:</strong></p>
+<pre>ss -ltnp | grep 2718         <span class="cm"># find PID</span>
+fuser -k 2718/tcp            <span class="cm"># kill by port — the reliable kill</span>
+ss -ltnp | grep 2718         <span class="cm"># verify gone</span></pre>
+<p>For non-default ports, substitute the port number.</p>
+<h2>13.3 Stale Browser Tab</h2>
+<p><strong>Cause:</strong> Browser tab from previous Marimo session pointing at old (possibly dead) server.</p>
+<p><strong>Fix:</strong> Close all tabs, restart Marimo, open new URL (with new <code>access_token</code>) in <strong>fresh incognito window</strong>. This is the definitive test — if Marimo works in incognito with a new token, the issue was browser cache.</p>
+<h2>13.4 PATH Shadowing</h2>
+<p><strong>Symptom:</strong> <code>which marimo</code> returns <code>~/.local/bin/marimo</code> instead of <code>.venv/bin/marimo</code>.</p>
+<p><strong>Cause:</strong> A prior <code>uv tool install marimo</code> placed a global binary in <code>~/.local/bin/</code>, which shadows the project venv.</p>
+<p><strong>Fix (immediate):</strong></p>
+<pre>.venv/bin/marimo edit --no-sandbox notebooks/03-python-basics/basic_data_types.py</pre>
+<p><strong>Fix (permanent):</strong></p>
+<pre>uv tool uninstall marimo</pre>
+<div class="info-box">Note: <code>pipx</code> is not in this toolchain. If you see <code>pipx</code> in a suggestion, ignore it.</div>
+<h2>13.5 Sandbox Prompt Conflict</h2>
+<p><strong>Symptom:</strong> <code>uvx marimo edit --sandbox</code> fails with jedi version conflict.</p>
+<p><strong>Cause:</strong> Notebook inline deps pin <code>jedi==0.20.0</code> but <code>python-lsp-server</code> requires <code>jedi&lt;0.20.0</code>.</p>
+<p><strong>Fix:</strong> Don&#x27;t use <code>--sandbox</code>:</p>
+<pre>.venv/bin/marimo edit --no-sandbox notebooks/03-python-basics/basic_data_types.py</pre>
+<p>If prompted <code>Run in a sandboxed venv? [Y/n]:</code>, answer <code>n</code>.</p>
+<h2>13.6 Dual-Remote Drift</h2>
+<p><strong>Symptom:</strong> One remote is ahead of the other after <code>git push</code>.</p>
+<p><strong>Cause:</strong> Plain <code>git push</code> only writes to the upstream-tracking remote (usually <code>github</code>).</p>
+<p><strong>Fix:</strong></p>
+<pre>git push github main
+git push synology main</pre>
+<p>Or use the <code>git pushall</code> alias from §15.</p>
+<h2>13.7 Missing .code-workspace File</h2>
+<p><strong>Cause:</strong> Never committed, or moved during filesystem migration.</p>
+<p><strong>Fix:</strong> Create per §3.1, commit, push both remotes. The <code>.code-workspace</code> file is a tracked artifact — its absence is a bug, not a configuration choice.</p>
+<h2>13.8 Markdown Autolink Corruption</h2>
+<p><strong>Cause:</strong> Chat clients autolink dotted names — <code>marimo.App</code> becomes <code>[marimo.App](http://marimo.App)</code>.</p>
+<p><strong>Fix:</strong> Type commands fresh from terminal history. Don&#x27;t copy-paste from chat for dotted-name commands.</p>
+<h2>13.9 Synology scp/rsync Permission Denied</h2>
+<p><strong>Symptom:</strong></p>
+<pre>scp: remote mkdir &quot;...&quot;: No such file or directory
+&lt;a id=&quot;or&quot;&gt;&lt;/a&gt;
+<span class="cm"># or</span>
+Permission denied, please try again.
+rsync: connection unexpectedly closed</pre>
+<p>…even though <code>ssh synology echo ok</code> works fine.</p>
+<p><strong>Cause:</strong> Synology DSM 7.2.2 ships OpenSSH 8.2. Modern OpenSSH 9.x clients (default on Ubuntu 24.04 WSL) negotiate SFTP for scp transfers, which Synology&#x27;s older sftp-server may chroot or reject. Rsync falls back to password auth despite SSH key auth succeeding.</p>
+<p><strong>Fix — scp:</strong> Force legacy SCP protocol with <code>-O</code> flag:</p>
+<pre>scp -O -P 2200 \
+  data/morningstar_eu_funds.csv \
+  data/transactions.csv \
+  synology:/volume1/workspace/python-fundamentals-fb/</pre>
+<p><strong>Fix — rsync:</strong> Specify rsync path explicitly:</p>
+<pre>rsync -avh --progress \
+  --rsync-path=/bin/rsync \
+  -e &quot;ssh -p 2200&quot; \
+  data/big_file.csv \
+  synology:/volume1/workspace/python-fundamentals-fb/</pre>
+<p><strong>Long-term fix:</strong> Wait for Synology to ship a DSM update with OpenSSH 9.x. Not under your control.</p>
+</section>
+
+<section class="section" id="s-locked">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Locked Decisions</h1>
+    <p>Section 14: 18 non-relitigable decisions</p>
+  </div>
+  <p>These decisions are non-relitigable. They were made deliberately, tested in practice, and are not open for renegotiation.</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Decision</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key">Repo name</td>
+<td><code>python-fundamentals-fb</code></td>
+</tr>
+<tr>
+<td class="key">Marimo version</td>
+<td><code>≥ 0.23.4</code></td>
+</tr>
+<tr>
+<td class="key">Marimo runtime config</td>
+<td><code>pyproject.toml</code> <code>[tool.marimo.runtime]</code></td>
+</tr>
+<tr>
+<td class="key">Loop var pattern</td>
+<td>Unique per cell: <code>r1/c1</code>, <code>r2/c2</code>, <code>e1/e2/e3</code></td>
+</tr>
+<tr>
+<td class="key">Python writer</td>
+<td><code>python3 &lt;&lt; &#x27;PYEOF&#x27;</code> always</td>
+</tr>
+<tr>
+<td class="key">Dual remote push</td>
+<td><code>git push github main &amp;&amp; git push synology main</code></td>
+</tr>
+<tr>
+<td class="key">Toolchain</td>
+<td><code>uv</code> exclusively — pip and pipx prohibited</td>
+</tr>
+<tr>
+<td class="key"><code>pyproject.toml</code></td>
+<td>All four blocks required</td>
+</tr>
+<tr>
+<td class="key">UV_LINK_MODE</td>
+<td><code>copy</code> in <code>~/.bashrc</code></td>
+</tr>
+<tr>
+<td class="key"><code>.code-workspace</code></td>
+<td>Tracked artifact at repo root</td>
+</tr>
+<tr>
+<td class="key">Marimo invocation</td>
+<td><code>.venv/bin/marimo</code> until global uninstalled</td>
+</tr>
+<tr>
+<td class="key">Multi-root workspace</td>
+<td>Option B — under <code>python-fundamentals-fb/workspaces/</code></td>
+</tr>
+<tr>
+<td class="key">Smoke test naming</td>
+<td><code>smoke_test_wave{N}[_improved].sh</code></td>
+</tr>
+<tr>
+<td class="key">Cross-vault workflow</td>
+<td>Discipline (post-session reflection), not code integration</td>
+</tr>
+<tr>
+<td class="key">Large data files</td>
+<td>External store on Synology + manifest in repo (§17), NOT git LFS</td>
+</tr>
+<tr>
+<td class="key">Synology data path</td>
+<td><code>/volume1/workspace/python-fundamentals-fb/</code></td>
+</tr>
+<tr>
+<td class="key">Synology scp transfer</td>
+<td><code>scp -O</code> required (DSM 7.2.2 OpenSSH 8.2)</td>
+</tr>
+<tr>
+<td class="key">KISS</td>
+<td>Keep It Simple and Standard</td>
+</tr>
+</table></div>
+</section>
+
+<section class="section" id="s-aliases">
+  <div class="color-strip cs-uv"></div>
+  <div class="section-header">
+    <h1>Alias Library</h1>
+    <p>Section 15: Shell + git aliases</p>
+  </div>
+  <h2>15.1 Shell Aliases (~/.bashrc)</h2>
+<pre>&lt;a id=&quot;repo-navigation&quot;&gt;&lt;/a&gt;
+<span class="cm"># Repo navigation</span>
+alias fb-fund=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/python-fundamentals-fb&#x27;</span>
+alias fb-deepdive=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/python-deepdive-fb&#x27;</span>
+alias fb-pydantic=&<span class="cm">#x27;cd /mnt/e/WSLData/Projects/pydantic-v2-essentials&#x27;</span>
+alias fb-notes=&<span class="cm">#x27;cd /mnt/e/Obsidian/udemy-fred-baptiste&#x27;</span>
+alias adr=&<span class="cm">#x27;cd /mnt/e/Obsidian/Architectural-Decision-Records&#x27;</span>
+
+&lt;a id=&quot;marimo-workflow&quot;&gt;&lt;/a&gt;
+<span class="cm"># Marimo workflow</span>
+fb-marimo() {
+    .venv/bin/marimo edit --no-sandbox &quot;$@&quot;
+}
+alias fb-killport=&<span class="cm">#x27;fuser -k 2718/tcp 2&gt;/dev/null &amp;&amp; echo &quot;Port 2718 cleared&quot;&#x27;</span>
+alias fb-marimo-config=&<span class="cm">#x27;.venv/bin/marimo config show | head -20&#x27;</span>
+
+&lt;a id=&quot;data-manifest&quot;&gt;&lt;/a&gt;
+<span class="cm"># Data manifest</span>
+alias fb-fetch-data=&<span class="cm">#x27;./scripts/fetch_data.sh&#x27;</span>
+alias fb-verify-data=&<span class="cm">#x27;./scripts/fetch_data.sh --verify&#x27;</span></pre>
+<h2>15.2 Git Aliases (~/.gitconfig under [alias])</h2>
+<pre>[alias]
+    pushall   = !git push github main &amp;&amp; git push synology main
+    fetchall  = !git fetch github &amp;&amp; git fetch synology
+    section   = &quot;!f() { git checkout -b section/$1; }; f&quot;
+    merge-section = &quot;!f() { git checkout main &amp;&amp; git merge --no-ff section/$1 &amp;&amp; git branch -d section/$1; }; f&quot;
+    br        = branch -vv
+    lg        = log --oneline --graph --decorate -20
+    st        = status -uno
+    pending   = !git log --oneline @{u}..HEAD 2&gt;/dev/null || echo &quot;No upstream set&quot;</pre>
+<h2>15.3 Why These Aliases</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Alias</th>
+<th>Compresses</th>
+<th>Avoids</th>
+</tr>
+<tr>
+<td class="key"><code>fb-*</code> cd</td>
+<td>70-char absolute paths</td>
+<td>Path typos</td>
+</tr>
+<tr>
+<td class="key"><code>fb-marimo</code></td>
+<td>full venv invocation</td>
+<td>PATH shadowing (§13.4)</td>
+</tr>
+<tr>
+<td class="key"><code>git pushall</code></td>
+<td>two-line dual-remote push</td>
+<td>§13.6 drift</td>
+</tr>
+<tr>
+<td class="key"><code>git section &lt;N&gt;</code></td>
+<td>branch creation</td>
+<td>Inconsistent naming</td>
+</tr>
+<tr>
+<td class="key"><code>git pending</code></td>
+<td>upstream-vs-HEAD diff</td>
+<td>Forgetting unpushed work</td>
+</tr>
+<tr>
+<td class="key"><code>fb-fetch-data</code></td>
+<td>manifest-driven download</td>
+<td>Manual scp/rsync trial</td>
+</tr>
+</table></div>
+</section>
+
+<section class="section" id="s-trifecta">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>Output Trifecta</h1>
+    <p>Section 16: md + docx + html</p>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Format</th>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+<tr>
+<td class="key">Markdown</td>
+<td><code>jupyter-marimo-migration-spec-v4.md</code></td>
+<td>Source of truth</td>
+</tr>
+<tr>
+<td class="key">DOCX</td>
+<td><code>jupyter-marimo-migration-spec-v4.docx</code></td>
+<td>Shareable for committee/ADR</td>
+</tr>
+<tr>
+<td class="key">HTML</td>
+<td><code>jupyter-marimo-migration-spec-v4.html</code></td>
+<td>Browsable reference</td>
+</tr>
+</table></div>
+<p>Markdown is authoritative. DOCX and HTML are derived artifacts.</p>
+</section>
+
+<section class="section" id="s-manifest">
+  <div class="color-strip cs-syn"></div>
+  <div class="section-header">
+    <h1>Data Manifest Pattern</h1>
+    <p>Section 17: LFS alternative with manifest</p>
+  </div>
+  <h2>17.1 The Pattern in One Sentence</h2>
+<p>For large data files in a git repo, <strong>the right answer is not LFS — it&#x27;s an external store with a manifest in the repo describing where to fetch each file and how to verify it</strong>.</p>
+<h2>17.2 LFS vs External Store</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th></th>
+<th>Git LFS</th>
+<th>External Store (Manifest)</th>
+</tr>
+<tr>
+<td class="key"><strong>How it works</strong></td>
+<td>Replaces large files with text pointers in git. Actual blobs live on an LFS server.</td>
+<td>Large files never enter git. Repo contains a manifest (TOML) listing files, sizes, hashes, source paths.</td>
+</tr>
+<tr>
+<td class="key"><strong>Server requirement</strong></td>
+<td>LFS server support required (GitHub has it, Synology does not)</td>
+<td>No server requirement — files live on any host you control</td>
+</tr>
+<tr>
+<td class="key"><strong>Clone speed</strong></td>
+<td><code>git clone</code> fetches LFS blobs automatically</td>
+<td><code>git clone</code> is fast; explicit fetch step required</td>
+</tr>
+<tr>
+<td class="key"><strong>Bandwidth</strong></td>
+<td>Subject to hosting quotas (GitHub LFS has bandwidth caps)</td>
+<td>Controlled by your own host — no quota</td>
+</tr>
+<tr>
+<td class="key"><strong>Versioning</strong></td>
+<td>Versioned with the repo — every commit can pin a different blob</td>
+<td>Not versioned in git — the manifest pins a hash</td>
+</tr>
+<tr>
+<td class="key"><strong>Integrity</strong></td>
+<td>Git&#x27;s content-addressing</td>
+<td>SHA-256 verification in fetch script</td>
+</tr>
+</table></div>
+<h2>17.3 Why External Store Wins for This Repo</h2>
+<p>Three concrete reasons:</p>
+<p style="margin-left:1rem">1. <strong>Synology lacks LFS server support.</strong> The warning <code>Remote &quot;synology&quot; does not support the Git LFS locking API</code> confirms it. Using LFS would mean GitHub-only blob hosting — undermining your dual-remote sovereignty (ADR-060). External store on Synology preserves Tier 1 sovereignty.</p>
+<p style="margin-left:1rem">2. <strong>The data is static teaching material.</strong> It doesn&#x27;t change. Versioning data with the repo (LFS&#x27;s strength) buys nothing here.</p>
+<p style="margin-left:1rem">3. <strong>No quota concerns on your NAS.</strong> GitHub LFS has bandwidth caps that would matter at student-clone scale. Synology over Tailscale has no quota.</p>
+<h2>17.4 Data Manifest — `data/MANIFEST.toml`</h2>
+<pre>&lt;a id=&quot;data-manifest-python-fundamentals-fb&quot;&gt;&lt;/a&gt;
+<span class="cm"># Data Manifest — python-fundamentals-fb</span>
+&lt;a id=&quot;large-csv-files-not-committed-to-git-fetch-via-scriptsfetchdatash&quot;&gt;&lt;/a&gt;
+<span class="cm"># Large CSV files not committed to git. Fetch via scripts/fetch_data.sh.</span>
+&lt;a id=&quot;source-synology-nas-over-tailscale-tier-1-adr-060&quot;&gt;&lt;/a&gt;
+<span class="cm"># Source: Synology NAS over Tailscale (Tier 1, ADR-060).</span>
+
+[source]
+host = &quot;synology&quot;                                    <span class="cm"># Tailscale alias, port 2200</span>
+base_path = &quot;/volume1/workspace/python-fundamentals-fb&quot;
+
+[[files]]
+name = &quot;morningstar_eu_funds.csv&quot;
+size_bytes = 75583183
+sha256 = &quot;70a2121a6dd52b54df1c3a090c6343bf77d62c1179c95d60615d39f8427c7c35&quot;
+used_in = [&quot;§30 Pandas&quot;]
+
+[[files]]
+name = &quot;transactions.csv&quot;
+size_bytes = 78616734
+sha256 = &quot;e7ac8ab5d745fa37306c2a1cfc9f51cbc00118d5fb3a51b288442d6fa4cb523d&quot;
+used_in = [&quot;§32 Practice Test 3&quot;]</pre>
+<h2>17.5 Fetch Script — `scripts/fetch_data.sh`</h2>
+<pre><span class="cm">#!/usr/bin/env bash</span>
+&lt;a id=&quot;fetchdatash-populate-data-from-synology-per-datamanifesttoml&quot;&gt;&lt;/a&gt;
+<span class="cm"># fetch_data.sh — populate data/ from Synology per data/MANIFEST.toml</span>
+&lt;a id=&quot;usage&quot;&gt;&lt;/a&gt;
+<span class="cm"># Usage:</span>
+&lt;a id=&quot;scriptsfetchdatash-fetch-missingchanged&quot;&gt;&lt;/a&gt;
+<span class="cm">#   ./scripts/fetch_data.sh            # fetch missing/changed</span>
+&lt;a id=&quot;scriptsfetchdatash-force-re-fetch-all&quot;&gt;&lt;/a&gt;
+<span class="cm">#   ./scripts/fetch_data.sh --force    # re-fetch all</span>
+&lt;a id=&quot;scriptsfetchdatash-verify-verify-checksums-only&quot;&gt;&lt;/a&gt;
+<span class="cm">#   ./scripts/fetch_data.sh --verify   # verify checksums only</span>
+
+set -euo pipefail
+
+REPO_ROOT=&quot;$(cd &quot;$(dirname &quot;$0&quot;)/..&quot; &amp;&amp; pwd)&quot;
+MANIFEST=&quot;$REPO_ROOT/data/MANIFEST.toml&quot;
+DATA_DIR=&quot;$REPO_ROOT/data&quot;
+
+SRC_HOST=$(grep &<span class="cm">#x27;^host&#x27;      &quot;$MANIFEST&quot; | cut -d&#x27;&quot;&#x27; -f2)</span>
+SRC_BASE=$(grep &<span class="cm">#x27;^base_path&#x27; &quot;$MANIFEST&quot; | cut -d&#x27;&quot;&#x27; -f2)</span>
+FILES=$(grep -A2 &<span class="cm">#x27;^\[\[files\]\]&#x27; &quot;$MANIFEST&quot; | grep &#x27;^name&#x27; | cut -d&#x27;&quot;&#x27; -f2)</span>
+
+mode=&quot;${1:-fetch}&quot;
+
+for filename in $FILES; do
+    local_file=&quot;$DATA_DIR/$filename&quot;
+    remote_path=&quot;${SRC_BASE}/${filename}&quot;
+    expected_sha=$(grep -B1 -A2 &quot;name = \&quot;$filename\&quot;&quot; &quot;$MANIFEST&quot; \
+                   | grep &<span class="cm">#x27;^sha256&#x27; | cut -d&#x27;&quot;&#x27; -f2)</span>
+
+    case &quot;$mode&quot; in
+        --verify)
+            if [[ -f &quot;$local_file&quot; ]]; then
+                actual=$(sha256sum &quot;$local_file&quot; | cut -d&<span class="cm">#x27; &#x27; -f1)</span>
+                [[ &quot;$actual&quot; == &quot;$expected_sha&quot; ]] \
+                  &amp;&amp; echo &quot;OK    $filename (sha256 verified)&quot; \
+                  || echo &quot;FAIL  $filename (sha256 MISMATCH)&quot;
+            else
+                echo &quot;MISS  $filename (not present)&quot;
+            fi ;;
+        --force)
+            echo &quot;FETCH $filename (forced)...&quot;
+            scp -O -P 2200 &quot;${SRC_HOST}:${remote_path}&quot; &quot;$local_file&quot; ;;
+        fetch|*)
+            if [[ -f &quot;$local_file&quot; &amp;&amp; -n &quot;$expected_sha&quot; ]]; then
+                actual=$(sha256sum &quot;$local_file&quot; | cut -d&<span class="cm">#x27; &#x27; -f1)</span>
+                if [[ &quot;$actual&quot; == &quot;$expected_sha&quot; ]]; then
+                    echo &quot;OK    $filename (already present, sha256 verified)&quot;
+                    continue
+                fi
+            fi
+            echo &quot;FETCH $filename...&quot;
+            scp -O -P 2200 &quot;${SRC_HOST}:${remote_path}&quot; &quot;$local_file&quot; ;;
+    esac
+done
+
+echo &quot;Done.&quot;</pre>
+<div class="info-box"><strong>Note:</strong> Uses <code>scp -O</code> per §13.9 — required for Synology DSM 7.2.2 OpenSSH 8.2.</div>
+<h2>17.6 Updated .gitignore</h2>
+<p>Replace the broad <code>data/*.csv</code> catch-all with specific large-file blocks:</p>
+<pre>&lt;a id=&quot;large-data-files-fetch-via-scriptsfetchdatash-see-17&quot;&gt;&lt;/a&gt;
+<span class="cm"># Large data files — fetch via scripts/fetch_data.sh (see §17)</span>
+data/morningstar_eu_funds.csv
+data/transactions.csv
+data/MANIFEST.toml.local       <span class="cm"># optional per-user override</span></pre>
+<p>This allows the small/medium CSVs (~857 KB total) to be committed.</p>
+<h2>17.7 README Data Section</h2>
+<p>Add to <code>README.md</code>:</p>
+<pre>&lt;a id=&quot;data-files&quot;&gt;&lt;/a&gt;
+<span class="cm">## Data Files</span>
+
+Most CSV files needed for sections 19, 22, 29, 30, 31 are committed in `data/`.
+
+Two large files are **not** in the repo and must be fetched separately:
+
+| File | Size | Used in |
+|------|------|---------|
+| `data/morningstar_eu_funds.csv` | 75 MB | §30 Pandas |
+| `data/transactions.csv`         | 78 MB | §32 Practice Test 3 |
+
+To fetch (requires Tailscale connection to Synology):
+
+    ./scripts/fetch_data.sh
+
+To verify integrity after fetch:
+
+    ./scripts/fetch_data.sh --verify
+
+Source-of-truth: Synology NAS Tier 1 store at
+/volume1/workspace/python-fundamentals-fb/. See ADR-060 for backup tier rationale.</pre>
+<h2>17.8 Generalizing — Beyond This Project</h2>
+<p>The same pattern works for any large-binary scenario: Parquet files for data engineering courses, model weights for ML projects (PyTorch <code>.pt</code>, ONNX), video assets for multimedia content, scientific datasets (HDF5, NetCDF).</p>
+<p>The pattern is always:</p>
+<pre>1. Files live on a sovereign store you control (NAS, S3 bucket, internal HTTP)
+2. Repo contains a manifest with name, size, hash, source path
+3. Fetch script reads manifest, downloads, verifies
+4. Repo&<span class="cm">#x27;s .gitignore blocks the actual files</span>
+5. Documentation tells users how to run the fetch</pre>
+<div class="info-box"><strong>Governing principle:</strong> This is D⁴ &quot;hub-and-spoke&quot; applied to binary assets. The NAS is the hub, repos are spokes that reference but don&#x27;t duplicate the hub&#x27;s content.</div>
+</section>
+
+<section class="section" id="s-adr060">
+  <div class="color-strip cs-syn"></div>
+  <div class="section-header">
+    <h1>ADR-060 — Backup Strategy Migration</h1>
+    <p>Appendix A: Four-tier architecture, iDrive, Dropbox retirement</p>
+  </div>
+  <p>The full text of ADR-060 follows. This ADR is the authoritative source for the four-tier backup architecture referenced throughout this spec.</p>
+<h2>ADR-060 — Backup Strategy Migration: iDrive Integration + Dropbox Retirement</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key"><strong>ADR Number</strong></td>
+<td>ADR-060</td>
+</tr>
+<tr>
+<td class="key"><strong>Title</strong></td>
+<td>Backup Strategy Migration: iDrive Integration + Dropbox Retirement</td>
+</tr>
+<tr>
+<td class="key"><strong>Status</strong></td>
+<td>ACCEPTED</td>
+</tr>
+<tr>
+<td class="key"><strong>Date</strong></td>
+<td>2026-04-29</td>
+</tr>
+<tr>
+<td class="key"><strong>Session</strong></td>
+<td>2026-04-29</td>
+</tr>
+<tr>
+<td class="key"><strong>Author</strong></td>
+<td>Peter Heller / Mind Over Metadata LLC</td>
+</tr>
+<tr>
+<td class="key"><strong>Node</strong></td>
+<td>Cluster-wide policy</td>
+</tr>
+<tr>
+<td class="key"><strong>Vault</strong></td>
+<td>Architectural-Decision-Records (ADR)</td>
+</tr>
+<tr>
+<td class="key"><strong>Supersedes</strong></td>
+<td>ADR-047 (Backup Governance — superseded in part)</td>
+</tr>
+<tr>
+<td class="key"><strong>Related</strong></td>
+<td>ADR-036 (rclone Universal Storage), ADR-038 (RustFS Local S3), ADR-046 (FreedomTower Disk Topology), ADR-047 (Backup Governance)</td>
+</tr>
+<tr>
+<td class="key"><strong>Governance type</strong></td>
+<td>Retrofit — implementation preceded documentation</td>
+</tr>
+</table></div>
+<h3>Context</h3>
+<p>As of 2026-04-29 the cluster backup posture has changed on three fronts:</p>
+<p style="margin-left:1rem">1. <strong>iDrive 5TB personal</strong> purchased — requires integration into the backup architecture</p>
+<p style="margin-left:1rem">2. <strong>Dropbox personal</strong> — retiring; iDrive replaces it as the offsite cloud backup tier</p>
+<p style="margin-left:1rem">3. <strong>CUNY Dropbox</strong> — retiring; trigger is not teaching fall 2026, institutional access will lapse</p>
+<p>Prior backup architecture (per ADR-047) covered Acronis across five nodes and OneDrive for M365 documents. Dropbox was the incumbent cloud sync layer but was never formally governed as a backup tier. This ADR formalizes the retirement of both Dropbox instances, the integration of iDrive, and the target four-tier architecture.</p>
+<h3>Decision</h3>
+<p>Adopt a four-tier backup architecture:</p>
+<pre>Tier 1 — On-premises primary     Synology DS920+
+Tier 2 — Local system image      Acronis (all 5 nodes)
+Tier 3 — Cloud documents         OneDrive (M365 — Me@MindOverMetadata.com)
+Tier 4 — Cloud offsite backup    iDrive 5TB personal
+
+Retiring                         Dropbox personal
+Retiring                         CUNY Dropbox</pre>
+<div class="info-box"><strong>Governing principle:</strong> Every critical asset must exist in at least two tiers simultaneously. No single cloud provider holds sole custody of any IP-sensitive content.</div>
+<h3>Why Dropbox Is Being Retired</h3>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Issue</th>
+<th>Detail</th>
+</tr>
+<tr>
+<td class="key"><strong>No zero-knowledge encryption</strong></td>
+<td>Dropbox personal tier does not offer client-side encryption. Unacceptable for IP-sensitive content (D⁴, ACES, HAIP, Navigator/Driver).</td>
+</tr>
+<tr>
+<td class="key"><strong>Backup semantics absent</strong></td>
+<td>Dropbox is sync, not backup. Accidental deletion on one device propagates everywhere. No snapshot isolation.</td>
+</tr>
+<tr>
+<td class="key"><strong>CUNY Dropbox lapsing</strong></td>
+<td>Not teaching fall 2026. Institutional access will not be renewed. Content stored only there is at risk of loss.</td>
+</tr>
+<tr>
+<td class="key"><strong>Redundant with iDrive</strong></td>
+<td>iDrive covers the same offsite tier with better semantics, better capacity, and zero-knowledge encryption. No justification for both.</td>
+</tr>
+</table></div>
+<h3>Why iDrive</h3>
+<p style="margin-left:1rem">• <strong>Zero-knowledge encryption</strong> — client-side; iDrive holds no plaintext. IP-sensitive content is safe.</p>
+<p style="margin-left:1rem">• <strong>NAS-direct backup</strong> — Synology DS920+ backs up directly to iDrive without a PC intermediary. Tier 1 → Tier 4 path is direct via Synology Package Center iDrive app.</p>
+<p style="margin-left:1rem">• <strong>Snapshot isolation</strong> — deleted files retained per retention policy. Accidental deletion does not cascade.</p>
+<p style="margin-left:1rem">• <strong>5TB capacity</strong> — sufficient for full NAS mirror plus growth for 2–3 years.</p>
+<p style="margin-left:1rem">• <strong>Versioning</strong> — point-in-time restore for individual files.</p>
+<h3>Tier Definitions</h3>
+<p><strong>Tier 1 — Synology DS920+ (On-Premises Primary)</strong></p>
+<p>Authoritative on-premises data store. All five Obsidian vaults push to bare repos here via SSH. All project repos push here as second remote alongside GitHub. Recovery source for all vault content.</p>
+<p><strong>What lives here:</strong> Obsidian vault bare repos, project bare repos, Docker volume backups, home cluster config.</p>
+<p><strong>Tier 2 — Acronis (Local System Image)</strong></p>
+<p>Full system image across all five cluster nodes: FreedomTower (RTX 5080), TheBeast (dual RTX 5090), MiniBeast (dual RTX 4090), Teacher (GTX 1060), Photography (5th node). Bare-metal recovery layer. Not a file backup tool.</p>
+<p><strong>Tier 3 — OneDrive (Cloud Documents)</strong></p>
+<p>Microsoft 365 tenancy <code>Me@MindOverMetadata.com</code>. Currently protecting M365 documents and business deliverables.</p>
+<p><strong>Open item:</strong> Obsidian vault sync to OneDrive not yet configured. Microsoft ticket open. Until resolved, vault cloud redundancy is GitHub + iDrive (via NAS mirror) only.</p>
+<p><strong>Tier 4 — iDrive 5TB (Cloud Offsite Backup)</strong></p>
+<p>Replaces Dropbox as the offsite cloud backup tier.</p>
+<p><strong>Intended coverage:</strong></p>
+<p style="margin-left:1rem">• Mirror of Synology NAS (primary use — via NAS-direct backup)</p>
+<p style="margin-left:1rem">• Obsidian vault content (second cloud tier alongside GitHub)</p>
+<p style="margin-left:1rem">• Critical project files not already in GitHub</p>
+<h3>Platform Role Matrix</h3>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Platform</th>
+<th>Tier</th>
+<th>Type</th>
+<th>Scope</th>
+<th>Status</th>
+</tr>
+<tr>
+<td class="key">Synology DS920+</td>
+<td>1</td>
+<td>On-premises NAS</td>
+<td>Obsidian vaults · repos · config</td>
+<td>✅ Active</td>
+</tr>
+<tr>
+<td class="key">Acronis</td>
+<td>2</td>
+<td>System image</td>
+<td>All 5 cluster nodes</td>
+<td>✅ Active</td>
+</tr>
+<tr>
+<td class="key">OneDrive (M365)</td>
+<td>3</td>
+<td>Cloud documents</td>
+<td>M365 docs · business deliverables</td>
+<td>✅ Active (partial — OneDrive ticket open)</td>
+</tr>
+<tr>
+<td class="key">iDrive 5TB</td>
+<td>4</td>
+<td>Cloud offsite backup</td>
+<td>NAS mirror · vaults · critical files</td>
+<td>🔄 Integration in progress</td>
+</tr>
+<tr>
+<td class="key">Dropbox personal</td>
+<td>—</td>
+<td>Cloud sync</td>
+<td>General files</td>
+<td>🔴 Retiring</td>
+</tr>
+<tr>
+<td class="key">CUNY Dropbox</td>
+<td>—</td>
+<td>Institutional sync</td>
+<td>CUNY-related files</td>
+<td>🔴 Retiring (fall 2026 trigger)</td>
+</tr>
+</table></div>
+<h3>Migration Actions</h3>
+<p><strong>Phase 1 — iDrive Setup (Immediate)</strong></p>
+<p style="margin-left:1rem">☐ Install iDrive via Synology Package Center — NAS-direct backup agent</p>
+<p style="margin-left:1rem">☐ Enable private (zero-knowledge) encryption <strong>before</strong> first backup job runs — key loss is unrecoverable</p>
+<p style="margin-left:1rem">☐ Store encryption key in: (1) password manager, (2) printed copy in secure location, (3) encrypted copy on Synology outside the iDrive backup scope — do not create a circular dependency</p>
+<p style="margin-left:1rem">☐ Configure daily incremental backup job at 03:00 — after Replica 2 quiet checkpoint window (02:00 per ADR-DB topology)</p>
+<p style="margin-left:1rem">☐ Set retention policy: minimum 30-day file versioning</p>
+<p style="margin-left:1rem">☐ Verify first backup completes; spot-check restorability</p>
+<p><strong>Phase 2 — Dropbox Personal Retirement</strong></p>
+<p style="margin-left:1rem">☐ Audit Dropbox personal: identify any content not already in Synology, GitHub, or OneDrive</p>
+<p style="margin-left:1rem">☐ Migrate orphaned content before decommission</p>
+<p style="margin-left:1rem">☐ Uninstall Dropbox client from all nodes</p>
+<p style="margin-left:1rem">☐ Cancel subscription if on paid tier</p>
+<p><strong>Phase 3 — CUNY Dropbox Retirement</strong></p>
+<p style="margin-left:1rem">☐ Before fall 2026: audit CUNY Dropbox for any CSCI 331 / CSCI 381 course materials worth preserving</p>
+<p style="margin-left:1rem">☐ Copy keepers to OneDrive (M365) or Synology</p>
+<p style="margin-left:1rem">☐ No account action required — institutional lapse handles closure</p>
+<p><strong>Phase 4 — OneDrive Obsidian Coverage (Pending Microsoft Ticket)</strong></p>
+<p style="margin-left:1rem">☐ Resolve Microsoft ticket for Obsidian vault sync to OneDrive</p>
+<p style="margin-left:1rem">☐ Validate git operations (WSL authoritative) not disrupted by OneDrive sync</p>
+<p style="margin-left:1rem">☐ Update this ADR to reflect Tier 3 scope expansion when complete</p>
+<h3>Consequences</h3>
+<p><strong>Positive:</strong></p>
+<p style="margin-left:1rem">• IP-sensitive content protected by zero-knowledge encryption at cloud offsite tier — Dropbox provided no such protection</p>
+<p style="margin-left:1rem">• Backup semantics replace sync semantics at Tier 4 — accidental deletion is no longer a cascade risk</p>
+<p style="margin-left:1rem">• CUNY Dropbox retirement is a clean exit with no stranded content risk if migration completes before fall 2026</p>
+<p style="margin-left:1rem">• 5TB capacity headroom sufficient for 2–3 years growth</p>
+<p><strong>Constraints:</strong></p>
+<p style="margin-left:1rem">• iDrive private key must be stored in at least two independent locations — key loss is unrecoverable</p>
+<p style="margin-left:1rem">• OneDrive Obsidian sync remains open — vault cloud coverage is two-tier (GitHub + iDrive) until resolved</p>
+<p style="margin-left:1rem">• CUNY Dropbox audit must complete before fall 2026 access lapses — hard deadline</p>
+<p><strong>Unchanged:</strong></p>
+<p style="margin-left:1rem">• Synology DS920+ remains Tier 1 — no change to NAS architecture</p>
+<p style="margin-left:1rem">• Acronis node imaging — no change to scope or schedule</p>
+<p style="margin-left:1rem">• Git remains the authoritative interface for all Obsidian vault operations — WSL only, no exceptions</p>
+<p style="margin-left:1rem">• Dual-remote push discipline (GitHub + Synology) — unchanged</p>
+<h3>Related ADRs</h3>
+<p style="margin-left:1rem">• ADR-036 — rclone Universal Storage Layer (see Appendix B)</p>
+<p style="margin-left:1rem">• ADR-038 — RustFS Local S3 Hub (see Appendix C)</p>
+<p style="margin-left:1rem">• ADR-046 — FreedomTower Disk Topology + Phased Cluster Migration (see Appendix D)</p>
+<p style="margin-left:1rem">• ADR-047 — Backup Governance (see Appendix E)</p>
+</section>
+
+<section class="section" id="s-adr036">
+  <div class="color-strip cs-uv"></div>
+  <div class="section-header">
+    <h1>ADR-036 — Rclone Universal Storage Layer</h1>
+    <p>Appendix B: Full verbatim text</p>
+  </div>
+  <p>The full text of ADR-036 follows verbatim. This ADR establishes rclone as the universal storage layer referenced in ADR-060&#x27;s tiered backup architecture.</p>
+<p># ADR-036 — Rclone Universal Storage Layer</p>
+<p><strong>Status:</strong> ADOPTED  </p>
+<p><strong>Date:</strong> 2026-04-11  </p>
+<p><strong>Author:</strong> Peter Heller | Mind Over Metadata LLC  </p>
+<p><strong>Node:</strong> FREEDOMTOWER  </p>
+<p><strong>ADR Registry Entry:</strong> ADR-036</p>
+<h2>Context</h2>
+<p>The MOM cluster backup stack has three cloud layers (Dropbox 3TB, SharePoint 1TB, Acronis cloud 2TB). Rclone is the designated tool for managing Layers 3a (Dropbox) and 3b (SharePoint). A single canonical <code>rclone.conf</code> governs all remotes across all nodes, stored at:</p>
+<pre>X:\Admin\rclone\rclone.conf</pre>
+<p>This ADR establishes: which data rclone owns, the remote naming convention, sync rules, exclusion patterns, and the relationship between rclone and the nightly job (ADR-035).</p>
+<h2>Backup Stack Reference</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Managed By</th>
+<th>Scope</th>
+</tr>
+<tr>
+<td class="key">Layer 1</td>
+<td>E: + X: local RAID 1</td>
+<td>OS/hardware</td>
+<td>All content on E: and X:</td>
+</tr>
+<tr>
+<td class="key">Layer 2</td>
+<td>Synology NAS on-premises</td>
+<td>Git + Acronis</td>
+<td>Vault bare repos + node images</td>
+</tr>
+<tr>
+<td class="key">Layer 3a</td>
+<td>Dropbox 3TB</td>
+<td><strong>Rclone</strong></td>
+<td>Obsidian vaults (E:\Obsidian\)</td>
+</tr>
+<tr>
+<td class="key">Layer 3b</td>
+<td>SharePoint 1TB</td>
+<td><strong>Rclone</strong></td>
+<td>MindOverMetadata-Docs (X:\MindOverMetadata-Docs\)</td>
+</tr>
+<tr>
+<td class="key">Layer 3c</td>
+<td>Acronis cloud 2TB</td>
+<td>Acronis agent</td>
+<td>Full disk images (C:, D:, Disk 4)</td>
+</tr>
+</table></div>
+<h2>Rclone Scope</h2>
+<h3>Rclone OWNS (sync targets)</h3>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Source</th>
+<th>Remote Target</th>
+<th>Notes</th>
+</tr>
+<tr>
+<td class="key"><code>/mnt/e/Obsidian/</code></td>
+<td><code>dropbox-mom:Obsidian-Backup/</code></td>
+<td>All five vaults</td>
+</tr>
+<tr>
+<td class="key"><code>X:\MindOverMetadata-Docs\</code></td>
+<td><code>sharepoint-mom:MindOverMetadata-Docs/</code></td>
+<td>Docs hub</td>
+</tr>
+<tr>
+<td class="key"><code>X:\Admin\mom-scripts\</code></td>
+<td><code>dropbox-mom:mom-scripts-Backup/</code></td>
+<td>Script repo mirror</td>
+</tr>
+</table></div>
+<h3>Rclone does NOT own</h3>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Item</th>
+<th>Reason</th>
+</tr>
+<tr>
+<td class="key">VHDX container files (W:\VHDXContainers\)</td>
+<td>Binary — Acronis handles</td>
+</tr>
+<tr>
+<td class="key">Docker volumes (D:\)</td>
+<td>Managed by Docker Desktop</td>
+</tr>
+<tr>
+<td class="key">OS files (C:\)</td>
+<td>Acronis full image</td>
+</tr>
+<tr>
+<td class="key">Synology bare repos</td>
+<td>Git push is the sync mechanism</td>
+</tr>
+<tr>
+<td class="key">Acronis backup archives</td>
+<td>Self-managed by Acronis agent</td>
+</tr>
+</table></div>
+<h2>Remote Naming Convention</h2>
+<p>All rclone remotes follow the pattern: <code>{provider}-{scope}</code></p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Remote Name</th>
+<th>Provider</th>
+<th>Authentication</th>
+</tr>
+<tr>
+<td class="key"><code>dropbox-mom</code></td>
+<td>Dropbox</td>
+<td>OAuth2 token (pheller@...)</td>
+</tr>
+<tr>
+<td class="key"><code>sharepoint-mom</code></td>
+<td>Microsoft SharePoint</td>
+<td>OAuth2 token (CUNY or personal)</td>
+</tr>
+</table></div>
+<p>No other remotes are defined without a corresponding ADR or explicit note in this file.</p>
+<h2>Config File Location</h2>
+<pre>Windows: X:\Admin\rclone\rclone.conf
+WSL:     /mnt/x/Admin/rclone/rclone.conf</pre>
+<p><strong>Single config file governs all nodes.</strong> Spoke nodes access via Tailscale UNC (<code>\\FREEDOMTOWER\X$\Admin\rclone\rclone.conf</code>) or local copy pulled from hub.</p>
+<p>All rclone invocations MUST specify <code>--config</code> explicitly:</p>
+<pre>rclone sync &lt;src&gt; &lt;dst&gt; --config /mnt/x/Admin/rclone/rclone.conf</pre>
+<p>No rclone command may rely on the default config location (<code>~/.config/rclone/rclone.conf</code>) — that location is not managed.</p>
+<h2>Sync Rules</h2>
+<h3>Direction</h3>
+<p><code>rclone sync</code> (not <code>copy</code>, not <code>bisync</code>) is the standard operation:</p>
+<p style="margin-left:1rem">• Source is always local</p>
+<p style="margin-left:1rem">• Cloud is always destination</p>
+<p style="margin-left:1rem">• Cloud is treated as a mirror — deletions propagate</p>
+<p><strong>Rationale:</strong> Obsidian vaults are the source of truth (git-managed). Cloud is backup, not collaboration. Bidirectional sync introduces conflict risk.</p>
+<h3>Bandwidth Limits</h3>
+<p>To avoid saturating the home uplink during nightly runs:</p>
+<pre>rclone sync &lt;src&gt; &lt;dst&gt; --config ... --bwlimit &quot;02:00,512k 08:00,off&quot;</pre>
+<p>Limit to 512 KB/s between 2 AM and 8 AM; no limit outside that window. The nightly job runs at 3 AM, so this applies.</p>
+<h3>Checksum vs ModTime</h3>
+<p>Default: <code>--checksum</code> is <strong>not</strong> used (too slow for large vault operations). ModTime + size comparison is sufficient for vault files. Exception: <code>MindOverMetadata-Docs</code> uses <code>--checksum</code> because it contains binary DOCX/PPTX files where ModTime may be unreliable.</p>
+<pre>&lt;a id=&quot;vaults-modtime-only-default&quot;&gt;&lt;/a&gt;
+<span class="cm"># Vaults — ModTime only (default)</span>
+rclone sync /mnt/e/Obsidian dropbox-mom:Obsidian-Backup --config ...
+
+&lt;a id=&quot;docs-checksum-for-binary-files&quot;&gt;&lt;/a&gt;
+<span class="cm"># Docs — checksum for binary files</span>
+rclone sync /mnt/x/MindOverMetadata-Docs sharepoint-mom:MindOverMetadata-Docs \
+    --checksum --config ...</pre>
+<h2>Exclusion Patterns</h2>
+<p>Applied globally to all rclone operations via <code>--exclude</code> flags (or <code>--filter-from</code> file at <code>X:\Admin\rclone\rclone-filters.txt</code>):</p>
+<pre>&lt;a id=&quot;rclone-filterstxt&quot;&gt;&lt;/a&gt;
+<span class="cm"># rclone-filters.txt</span>
+- .git/**
+- .obsidian/workspace.json
+- .obsidian/cache
+- **/.DS_Store
+- **/Thumbs.db
+- **/*.tmp
+- **/*.temp
+- **/~$*
+- node_modules/**
+- __pycache__/**
+- *.pyc</pre>
+<p><code>.git/</code> directories are excluded — git content is backed up via Synology bare repos, not rclone.</p>
+<h2>Rclone Binary Location</h2>
+<pre>Windows: X:\Admin\rclone\rclone.exe
+WSL:     /usr/local/bin/rclone  (system install)</pre>
+<p>The WSL system install (<code>sudo apt install rclone</code> or download from rclone.org) is authoritative for nightly job execution. The Windows binary at <code>X:\Admin\rclone\rclone.exe</code> is available for manual PowerShell invocation.</p>
+<h2>Filter File Usage</h2>
+<pre>rclone sync /mnt/e/Obsidian dropbox-mom:Obsidian-Backup \
+    --config /mnt/x/Admin/rclone/rclone.conf \
+    --filter-from /mnt/x/Admin/rclone/rclone-filters.txt \
+    --log-file /mnt/x/Admin/mom-scripts/logs/rclone-$(date +%Y%m%d).log \
+    --log-level INFO</pre>
+<h2>Initial Setup Checklist</h2>
+<p>Before first nightly run:</p>
+<p style="margin-left:1rem">1. <code>rclone config</code> — add <code>dropbox-mom</code> remote (OAuth2 flow, browser required)</p>
+<p style="margin-left:1rem">2. <code>rclone config</code> — add <code>sharepoint-mom</code> remote (OAuth2 flow, browser required)</p>
+<p style="margin-left:1rem">3. Verify: <code>rclone lsd dropbox-mom: --config /mnt/x/Admin/rclone/rclone.conf</code></p>
+<p style="margin-left:1rem">4. Verify: <code>rclone lsd sharepoint-mom: --config /mnt/x/Admin/rclone/rclone.conf</code></p>
+<p style="margin-left:1rem">5. Copy <code>rclone.conf</code> to <code>X:\Admin\rclone\</code> (it will be at <code>~/.config/rclone/rclone.conf</code> after setup)</p>
+<p style="margin-left:1rem">6. Delete <code>~/.config/rclone/rclone.conf</code> — all invocations use <code>--config</code> explicitly</p>
+<h2>Token Refresh</h2>
+<p>OAuth2 tokens expire. Rclone auto-refreshes tokens if the config contains a valid refresh token. If a token expires (e.g., after Dropbox revokes access), the nightly job will fail at the rclone step. Resolution:</p>
+<pre>rclone config reconnect dropbox-mom: --config /mnt/x/Admin/rclone/rclone.conf</pre>
+<h2>Decision</h2>
+<p><strong>Adopted.</strong> Effective immediately:</p>
+<p style="margin-left:1rem">1. Rclone is the exclusive tool for Layer 3a (Dropbox) and 3b (SharePoint) cloud backup.</p>
+<p style="margin-left:1rem">2. Single <code>rclone.conf</code> at <code>X:\Admin\rclone\rclone.conf</code> governs all remotes.</p>
+<p style="margin-left:1rem">3. Remote naming: <code>{provider}-{scope}</code> (e.g., <code>dropbox-mom</code>, <code>sharepoint-mom</code>).</p>
+<p style="margin-left:1rem">4. All rclone invocations specify <code>--config</code> explicitly — default config location is unused.</p>
+<p style="margin-left:1rem">5. VHDX containers and OS files are excluded from rclone scope (Acronis handles these).</p>
+<p style="margin-left:1rem">6. <code>rclone-filters.txt</code> excludes <code>.git/</code>, temp files, and OS artifacts.</p>
+<h2>Consequences</h2>
+<p style="margin-left:1rem">• OAuth2 tokens must be initialized interactively before the nightly job runs for the first time.</p>
+<p style="margin-left:1rem">• Config file at <code>X:\Admin\rclone\</code> must be kept in sync if tokens are refreshed.</p>
+<p style="margin-left:1rem">• Spoke nodes that run rclone must access the config via UNC or local copy — never their own <code>~/.config/rclone/</code>.</p>
+<h2>Related ADRs</h2>
+<p style="margin-left:1rem">• ADR-032: Shell Environment Governance (env vars, drive map)</p>
+<p style="margin-left:1rem">• ADR-035: Nightly 3AM Cron Job (rclone invocation in pipeline)</p>
+<p style="margin-left:1rem">• ADR-037: Symlink Strategy</p>
+</section>
+
+<section class="section" id="s-adr038">
+  <div class="color-strip cs-uv"></div>
+  <div class="section-header">
+    <h1>ADR-038 — RustFS Local S3 Hub</h1>
+    <p>Appendix C: Full verbatim text</p>
+  </div>
+  <p>The full text of ADR-038 follows verbatim. This ADR establishes RustFS as the S3-compatible local storage peer within the rclone Universal Storage Layer.</p>
+<p># ADR-038: RustFS Local S3 Hub — Universal Storage Peer via rclone</p>
+<h2>Context</h2>
+<p>FreedomTower requires an S3-compatible local object store to serve:</p>
+<p style="margin-left:1rem">• ACES agentic coding and testing</p>
+<p style="margin-left:1rem">• MaaS (Model-as-a-Service) tier — Fabric as the pattern execution engine,</p>
+<p>  Python/LangChain/LangGraph/LangSmith/Tavily for ACES distributed architecture</p>
+<p style="margin-left:1rem">• Teaching workflows (CSCI 331, CSCI 381)</p>
+<p style="margin-left:1rem">• Personal use across all Peter Heller workstreams — period</p>
+<p>ADR-036 established rclone as the Universal Storage Layer with a backend-agnostic</p>
+<p>remote model. All storage backends — local, NAS, cloud — are peers under that layer.</p>
+<p>RustFS is the S3-compatible local peer, implemented as a Docker service on FreedomTower</p>
+<p>with a governed local directory as its backing store.</p>
+<p>No VHDX is required. No new drive is required. No file migrations are required.</p>
+<p>The rclone abstraction layer insulates all consumers from backing store location entirely.</p>
+<p>The Dropbox files already resident in the cloud are a direct example of this principle:</p>
+<p>rclone has a native Dropbox remote type. Dropbox files become accessible to ACES agents</p>
+<p>and Fabric patterns through the same rclone abstraction — no migration, no file moves,</p>
+<p>no disruption. Dropbox is simply a named remote peer alongside rustfs, synology, and</p>
+<p>any future cloud backend.</p>
+<h2>Decision</h2>
+<p>RustFS runs as a Docker service on FreedomTower, backed by a governed local directory</p>
+<p>on an existing FreedomTower drive. It is registered as a named remote in rclone.conf</p>
+<p>and is a peer backend within the ADR-036 Universal Storage Layer.</p>
+<p>All five cluster nodes access RustFS via rclone over Tailscale on-demand. No persistent</p>
+<p>RustFS client process runs on TheBeast, MiniBeast, Teacher, or Node-5.</p>
+<p><strong>Phase 1 (current):</strong> Local backing store on FreedomTower — governed directory,</p>
+<p>existing drive, no new hardware.</p>
+<p><strong>Phase 2 (future):</strong> Distributed containerized RustFS across cluster MaaS nodes,</p>
+<p>or cloud-resident backing store. Transition requires only a new rclone remote entry.</p>
+<p>Zero changes to ACES agents, Fabric patterns, LangGraph/LangChain/Tavily integration</p>
+<p>code, or teaching workflows.</p>
+<h2>Universal Storage Layer — Peer Backend Registry</h2>
+<pre>rclone Universal Storage Layer (ADR-036)
+├── [rustfs]        ← RustFS local, FreedomTower — ACES/MaaS/testing/teaching
+├── [rustfs-cloud]  ← future distributed/cloud RustFS (new entry, zero app change)
+├── [dropbox]       ← Dropbox cloud files, accessible in place, zero migration
+├── [synology]      ← Synology NAS backend
+└── [s3-cloud]      ← AWS S3 / Cloudflare R2 / Backblaze B2 when needed</pre>
+<p>All remotes are peers. Consumers call <code>remote:bucket/key</code>. The backing store</p>
+<p>location is transparent to every consumer — ACES agents, Fabric patterns,</p>
+<p>LangGraph chains, Tavily search pipelines, teaching scripts, personal workflows.</p>
+<h2>Bucket Topology</h2>
+<pre>RustFS on FreedomTower (local backing store)
+├── aces-outputs        ← ACES pipeline phase results, JSONL ledger artifacts
+├── aces-testing        ← agentic coding sandbox, MaaS test artifacts
+├── maas-models         ← MaaS tier model artifacts, Fabric pattern outputs
+├── obsidian-assets     ← vault attachments (all five vaults)
+├── lecture-files       ← CSCI 331 / CSCI 381 teaching materials
+├── wsl-backups         ← WSL2 distro exports
+└── archives            ← historical artifacts, OldDataFiles overflow</pre>
+<h2>rclone Remote Configuration</h2>
+<p><strong>FreedomTower</strong> (<code>~/.config/rclone/rclone.conf</code>):</p>
+<pre>[rustfs]
+type = s3
+provider = Minio
+env_auth = false
+access_key_id = ${RUSTFS_ROOT_USER}
+secret_access_key = ${RUSTFS_ROOT_PASSWORD}
+endpoint = http://localhost:9000
+path_style = true
+
+[dropbox]
+type = dropbox
+; OAuth token configured via: rclone config
+; Files remain in Dropbox cloud — zero migration
+
+[synology]
+type = s3
+provider = Other
+endpoint = http://${SYNOLOGY_IP}:9000
+access_key_id = ${SYNOLOGY_S3_KEY}
+secret_access_key = ${SYNOLOGY_S3_SECRET}
+path_style = true</pre>
+<p><strong>Remote nodes</strong> (TheBeast, MiniBeast, Teacher, Node-5):</p>
+<pre>[rustfs]
+type = s3
+provider = Minio
+env_auth = false
+access_key_id = ${RUSTFS_ROOT_USER}
+secret_access_key = ${RUSTFS_ROOT_PASSWORD}
+endpoint = http://${FREEDOMTOWER_TAILSCALE_IP}:9000
+path_style = true</pre>
+<p><code>FREEDOMTOWER_TAILSCALE_IP</code> populated at deploy time from Tailscale admin console.</p>
+<p>All credentials sourced from node <code>.env</code> files — never hardcoded. ADR-032 governs.</p>
+<h2>Docker Compose (FreedomTower)</h2>
+<pre>services:
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    ports:
+      - &quot;9000:9000&quot;    <span class="cm"># S3 API — all cluster nodes via Tailscale</span>
+      - &quot;9001:9001&quot;    <span class="cm"># Console UI — FreedomTower local only</span>
+    volumes:
+      - ${RUSTFS_DATA_DIR}:/data
+    environment:
+      RUSTFS_ROOT_USER:     ${RUSTFS_ROOT_USER}
+      RUSTFS_ROOT_PASSWORD: ${RUSTFS_ROOT_PASSWORD}
+      RUSTFS_VOLUMES:       /data
+    restart: unless-stopped</pre>
+<p><code>RUSTFS_DATA_DIR</code> is a governed local directory on FreedomTower — defined in <code>.env</code>,</p>
+<p>governed by ADR-032. Drive assignment determined by Navigator at deploy time based on</p>
+<p>available capacity. No VHDX. No new drive required.</p>
+<h2>Phase Transition — Zero Application Impact</h2>
+<p>Moving from Phase 1 (local) to Phase 2 (cloud or distributed) requires exactly one</p>
+<p>operational action: add a new rclone remote entry.</p>
+<pre>; Phase 2 addition — no existing entries modified
+[rustfs-cloud]
+type = s3
+provider = AWS          ; or Cloudflare R2, Backblaze B2, distributed RustFS
+endpoint = https://...
+access_key_id = ${RUSTFS_CLOUD_KEY}
+secret_access_key = ${RUSTFS_CLOUD_SECRET}</pre>
+<p>ACES agents, Fabric patterns, LangGraph chains, and teaching scripts that call</p>
+<p><code>rustfs:bucket/key</code> continue unchanged. Migration of individual buckets to</p>
+<p><code>rustfs-cloud:bucket/key</code> is a routing decision made at the rclone layer — not</p>
+<p>in application code.</p>
+<h2>Rationale</h2>
+<p><strong>rclone abstraction is the governing principle.</strong> Backing store location is an</p>
+<p>operational detail, not an architectural constraint. The Universal Storage Layer</p>
+<p>(ADR-036) was designed precisely to make this true.</p>
+<p><strong>Dropbox displacement without disruption.</strong> Dropbox files in the cloud are already</p>
+<p>accessible via rclone&#x27;s native Dropbox remote. No migration is needed or desired.</p>
+<p>Dropbox continues to serve its existing use cases. ACES and Fabric gain access to</p>
+<p>those files through the same rclone abstraction. C: drive Dropbox daemon scope</p>
+<p>reduces naturally over time as new artifacts land in rustfs instead.</p>
+<p><strong>KISS.</strong> One Docker service on one node. Local directory backing store. No quorum,</p>
+<p>no replication, no distributed complexity in Phase 1. Complexity added only when</p>
+<p>the MaaS distributed architecture requires it — and only through a new rclone entry.</p>
+<p><strong>Teaching and personal use are first-class.</strong> RustFS is not exclusively an ACES</p>
+<p>infrastructure component. It serves all Peter Heller workstreams on FreedomTower —</p>
+<p>teaching materials, personal archives, testing — under the same governed access model.</p>
+<p><strong>Resource discipline.</strong> Four nodes carry zero RustFS overhead at idle. One Docker</p>
+<p>container on FreedomTower. Tailscale handles mesh routing. On-demand access only.</p>
+<h2>Consequences</h2>
+<p style="margin-left:1rem">• <code>RUSTFS_DATA_DIR</code>, <code>RUSTFS_ROOT_USER</code>, <code>RUSTFS_ROOT_PASSWORD</code> added to</p>
+<p>  FreedomTower <code>.env</code> and <code>$PROFILE</code> sentinel block (ADR-032).</p>
+<p style="margin-left:1rem">• <code>FREEDOMTOWER_TAILSCALE_IP</code> added to remote node <code>.env</code> files.</p>
+<p style="margin-left:1rem">• All five nodes receive <code>[rustfs]</code> remote entry in <code>rclone.conf</code> as part of</p>
+<p>  node-provisioning runbook.</p>
+<p style="margin-left:1rem">• Node-5 RustFS remote configuration deferred until sysprep SID fix and</p>
+<p>  Tailscale join are complete (open action).</p>
+<p style="margin-left:1rem">• Dropbox rclone remote (<code>[dropbox]</code>) configured on FreedomTower via</p>
+<p>  <code>rclone config</code> OAuth flow — files remain in Dropbox cloud untouched.</p>
+<p style="margin-left:1rem">• Phase 2 distributed RustFS architecture is a future ADR — not in scope here.</p>
+<p style="margin-left:1rem">• Synology ↔ RustFS replication strategy is a future ADR — not in scope here.</p>
+<h2>Cross-References</h2>
+<p style="margin-left:1rem">• Implements: ADR-036 (rclone Universal Storage Layer) — new peer backend</p>
+<p style="margin-left:1rem">• Governed by: ADR-032 (env var policy — no hardcoded credentials)</p>
+<p style="margin-left:1rem">• Deferred dependency: Node-5 sysprep SID fix (open action)</p>
+<p style="margin-left:1rem">• Future: Phase 2 distributed RustFS ADR (number TBD)</p>
+<p style="margin-left:1rem">• Future: Synology ↔ RustFS replication ADR (number TBD)</p>
+</section>
+
+<section class="section" id="s-adr046">
+  <div class="color-strip cs-gray"></div>
+  <div class="section-header">
+    <h1>ADR-046 — FreedomTower Disk Topology</h1>
+    <p>Appendix D: Full text + Amendment 1</p>
+  </div>
+  <p>The full text of ADR-046 and its Amendment 1 follow verbatim. This ADR governs the physical disk topology, drive letter assignments, user profile relocation, and phased cluster migration plan.</p>
+<p># ADR-046 — FreedomTower Disk Topology and Phased Cluster Migration Governance</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key"><strong>ADR Number</strong></td>
+<td>ADR-046</td>
+</tr>
+<tr>
+<td class="key"><strong>Title</strong></td>
+<td>FreedomTower Disk Topology and Phased Cluster Migration Governance</td>
+</tr>
+<tr>
+<td class="key"><strong>Status</strong></td>
+<td>ACCEPTED</td>
+</tr>
+<tr>
+<td class="key"><strong>Date</strong></td>
+<td>2026-04-13</td>
+</tr>
+<tr>
+<td class="key"><strong>Author</strong></td>
+<td>Peter Heller / Mind Over Metadata LLC</td>
+</tr>
+<tr>
+<td class="key"><strong>Node</strong></td>
+<td>FREEDOMTOWER</td>
+</tr>
+<tr>
+<td class="key"><strong>Vault</strong></td>
+<td>Architectural-Decision-Records (ADR)</td>
+</tr>
+<tr>
+<td class="key"><strong>Supersedes</strong></td>
+<td>None</td>
+</tr>
+<tr>
+<td class="key"><strong>Related</strong></td>
+<td>ADR-033 (Disk4 DBVolMounts), ADR-034 (Windows User Profile Relocation), ADR-035 (Nightly Cron), ADR-036 (Rclone Universal Storage), ADR-037 (Symlink Strategy), ADR-038 (RustFS Local S3 Hub), ADR-039 (DuckLake/DuckDB/MotherDuck), ADR-042 (WSL↔WIN11 Interoperability), ADR-044 (DuckDB/Iceberg/RustFS Stack)</td>
+</tr>
+</table></div>
+<h2>Context</h2>
+<p>FreedomTower&#x27;s physical disk topology did not match the drive map</p>
+<p>documented in the Session ignition keys. The actual Disk Management</p>
+<p>view revealed eleven disks, dynamic mirrors, VHDX volumes, and legacy</p>
+<p>drive letters that had accumulated over time without formal governance.</p>
+<p>W: (TeachMaterials) was a mixed-use production drive containing not</p>
+<p>only teaching materials but also legacy databases, Azure VM disks,</p>
+<p>personal VHDXs, Windows Server 2012 VMs, and a stale Obsidian vault</p>
+<p>copy. X: (ArchiveRaid1) was underutilized relative to its 14.5TB</p>
+<p>capacity. Disk 4 had 5.7TB of unallocated space plus a 3TB Dropbox</p>
+<p>volume that was consuming C: drive performance via the native sync</p>
+<p>client.</p>
+<p>No ADR existed governing the full disk topology, drive letter</p>
+<p>assignments, user profile relocation, rclone remote configuration,</p>
+<p>or the phased migration plan for the cluster nodes. This ADR locks</p>
+<p>all of those decisions.</p>
+<h2>Decision</h2>
+<h3>Part 1 — FreedomTower Physical Disk Topology (Target State)</h3>
+<h4>C: — OS Only — 3.7TB SSD (Disk 5)</h4>
+<p style="margin-left:1rem">• Windows system files only</p>
+<p style="margin-left:1rem">• AppData for all user profiles — NEVER moved — Microsoft requirement</p>
+<p style="margin-left:1rem">• Page file, crash dump</p>
+<p style="margin-left:1rem">• Dropbox sync client: UNINSTALLED</p>
+<p style="margin-left:1rem">• OneDrive: relocated to X: via OneDrive Settings (not Location tab)</p>
+<p style="margin-left:1rem">• No user data, no project data, no Docker volumes</p>
+<h4>D: — Docker + WSL2 — 3.7TB SSD (Disk 6)</h4>
+<p style="margin-left:1rem">• Docker Desktop VHDX</p>
+<p style="margin-left:1rem">• WSL2 ext4.vhdx</p>
+<p style="margin-left:1rem">• No user data</p>
+<p style="margin-left:1rem">• COMPLETE — no open items</p>
+<h4>E: — DataRaid1 — 7.27TB Mirror (Disks 0+3)</h4>
+<p style="margin-left:1rem">• All 8 Obsidian vaults (obsidian-mom, obsidian-adr, obsidian-docs,</p>
+<p>  obsidian-userguide, obsidian-nav, obsidian-aces-poc, obsidian-haip,</p>
+<p>  obsidian-cs-trends)</p>
+<p style="margin-left:1rem">• aces-skills repo, aces-repo</p>
+<p style="margin-left:1rem">• E:\Projects\ — all active development</p>
+<h4>X: — ArchiveRaid1 — 14.5TB Mirror (Disks 1+2)</h4>
+<p>RAID 1 protected. Primary hub for all user data, teaching content,</p>
+<p>governance scripts, and archive material.</p>
+<pre>X:\Users\{username}\          All Windows shell folders — ALL profiles
+  Desktop\
+  Documents\
+  Downloads\
+  Pictures\
+  Music\
+  Videos\
+  OneDrive\                   Relocated via OneDrive Settings
+
+X:\MindOverMetadata-Docs\     Authoritative MOM documentation
+X:\MindOverMetadata-Scripts\  mom-scripts hub (canonical)
+X:\TeachMaterials\            All teaching content from old W:
+  CSCI-Projects\              331\ + 381\ student project archives
+  QueensCollegeLectures\
+  TSQLFundamentals2012\
+  TabularEditor\
+  csci331-backup\
+  CSCI331-backup.zip
+X:\OCCAMServer\               OCCAM VHDXs — RAID 1 protected
+  G-CSCI331.vhdx              on demand
+  Q-CSCI381.vhdx              on demand
+X:\GitRepos\                  Z: content migrated here — Z: retired
+X:\Archives\
+  OldDataFiles-20260408\      K: content — read only</pre>
+<h4>W: — Disk 4 VHDX Farm — ~8.7TB (Single Disk — Backup Required)</h4>
+<p>Disk 4 is a Basic disk — no RAID, no redundancy. All VHDXs here</p>
+<p>require the backup strategy defined in Part 3. Active Docker workloads</p>
+<p>are TEMPORARY on FreedomTower pending cluster node commissioning.</p>
+<pre>W:\DBarchives\
+  EC3Database.vhdx            600GB max, dynamically expanding
+                              SQL Server on demand
+                              EC3 origin MDF + future D4 merges
+  H-Databases.vhdx            on demand
+  K-OldDataFiles.vhdx         on demand
+  CSCI331-backup.vhdx         on demand
+  HomeDatabase.vhdx           on demand
+  winSrvr2012\                legacy VHDXs — on demand
+
+W:\RustFS\
+  rustfs-data.vhdx            TEMPORARY — migrates to S3Bucket
+                              Docker -v backing store
+                              S3 buckets: aces-iceberg, aces-outputs,
+                              wsl-backups, obsidian-assets
+
+W:\PostgreSQL\
+  postgres-data.vhdx          TEMPORARY — migrates to TheBeast
+                              Docker -v backing store
+                              PostgreSQL 18 + pgduckdb + pgvector
+
+W:\Nessie\
+  nessie-data.vhdx            TEMPORARY — migrates to Teacher
+                              Docker -v backing store
+                              Iceberg catalog server</pre>
+<h4>Y: — Freed Drive Letter (was Dropbox 3TB)</h4>
+<p style="margin-left:1rem">• Dropbox sync client uninstalled from Windows</p>
+<p style="margin-left:1rem">• Y: volume removed — 3TB joins Disk 4 unallocated pool</p>
+<p style="margin-left:1rem">• Dropbox cloud access: rclone [dropbox] remote only</p>
+<p style="margin-left:1rem">• No physical drive letter assigned</p>
+<h4>Z: — Retired</h4>
+<p style="margin-left:1rem">• Z: content migrated to X:\GitRepos\ (RAID 1 protected)</p>
+<p style="margin-left:1rem">• Z: was Synology git server redundancy backup — function preserved</p>
+<p style="margin-left:1rem">• Z: drive letter retired</p>
+<h3>Part 2 — User Profile Relocation Governance</h3>
+<h4>Rule: All shell folders for ALL user profiles on ALL cluster nodes</h4>
+<p>are relocated from C:\Users\{username}\ to X:\Users\{username}\</p>
+<pre>C:\Users\{username}\Desktop    → X:\Users\{username}\Desktop
+C:\Users\{username}\Documents  → X:\Users\{username}\Documents
+C:\Users\{username}\Downloads  → X:\Users\{username}\Downloads
+C:\Users\{username}\Pictures   → X:\Users\{username}\Pictures
+C:\Users\{username}\Music      → X:\Users\{username}\Music
+C:\Users\{username}\Videos     → X:\Users\{username}\Videos
+C:\Users\{username}\OneDrive   → X:\Users\{username}\OneDrive</pre>
+<h4>Migration method by folder type</h4>
+<p style="margin-left:1rem">• Shell folders (Desktop, Documents, Pictures, Music, Videos):</p>
+<p>  Properties → Location tab → move to X:\Users\{username}\{folder}</p>
+<p style="margin-left:1rem">• Downloads: mklink /J junction if Location tab is unavailable</p>
+<p style="margin-left:1rem">• OneDrive: OneDrive Settings → Change folder location → X:\Users\{username}\OneDrive</p>
+<p style="margin-left:1rem">• AppData: NEVER moved — stays on C: — no exceptions</p>
+<h4>Profiles in scope</h4>
+<p>All user profiles present on C:\Users\ — not just pheller.</p>
+<p>On FreedomTower this includes pheller and peterheller.</p>
+<p>On each new node, all profiles present at commissioning time.</p>
+<h4>Node lifecycle rule</h4>
+<p style="margin-left:1rem">• Commission: relocate all C:\Users\{username}\ → X:\Users\{username}\</p>
+<p>  BEFORE the node joins the Tailscale mesh</p>
+<p style="margin-left:1rem">• Decommission: X:\Users\{username}\ backed up to Synology</p>
+<p>  BEFORE the node leaves the mesh</p>
+<p>  Profile data is never lost on node retirement</p>
+<h3>Part 3 — rclone Universal Storage Layer (ADR-036 Extension)</h3>
+<p>Four remotes govern all cloud and cluster storage. No native sync</p>
+<p>clients are permitted on any node after FreedomTower restructure.</p>
+<pre>[dropbox]    Dropbox cloud API
+             Replaces Y: physical drive + C: sync client entirely
+             Active
+
+[synology]   Synology SSH — ssh://synology:/volume1/
+             Layer 2 backup target for all Disk 4 VHDXs
+             Active
+
+[rustfs]     RustFS S3 endpoint via Tailscale
+             Short term: http://freedomtower.tail&lt;hash&gt;.ts.net:9000
+             Mid term:   http://s3bucket.tail&lt;hash&gt;.ts.net:9000
+             Active — endpoint updated when S3Bucket commissioned
+
+[sharepoint] SharePoint — RESERVED
+             Config entry exists as commented placeholder
+             Not active — future option, no timeline committed</pre>
+<h4>Single rclone.conf — hub and spoke</h4>
+<p style="margin-left:1rem">• One rclone.conf lives on X:\MindOverMetadata-Scripts\rclone\</p>
+<p style="margin-left:1rem">• Deployed to every node via mom-scripts (install-node.sh)</p>
+<p style="margin-left:1rem">• No node runs a native Dropbox, OneDrive (beyond shell integration),</p>
+<p>  or SharePoint sync client</p>
+<h3>Part 4 — Disk 4 Backup Strategy</h3>
+<p>Disk 4 is a single Basic disk. Everything on W: is at risk without</p>
+<p>the following backup discipline:</p>
+<h4>Tier 1 — RustFS (most volatile — active pipeline writes)</h4>
+<pre>rclone sync W:\RustFS\data synology:/volume1/rustfs-backup/</pre>
+<p>Trigger: on-demand + after every ACES pipeline run</p>
+<p>Future: nightly 3AM cron per ADR-035 pattern</p>
+<h4>Tier 2 — DBarchives VHDXs (read-mostly)</h4>
+<pre>rclone copy W:\DBarchives\ synology:/volume1/dbarchives-backup/</pre>
+<p>Trigger: on-demand before any mount/write operation</p>
+<h4>Tier 3 — PostgreSQL + Nessie (temporary — until migrated)</h4>
+<pre>rclone sync W:\PostgreSQL\ synology:/volume1/postgres-backup/
+rclone sync W:\Nessie\ synology:/volume1/nessie-backup/</pre>
+<p>Trigger: on-demand — these migrate off FreedomTower in mid term</p>
+<h3>Part 5 — Phased Cluster Migration Plan</h3>
+<h4>Short Term — FreedomTower Complete + POC Live</h4>
+<p>Target: this week (Bloomberg demo + immediate follow-on)</p>
+<pre>C: restructure:
+  Dropbox sync client uninstalled
+  OneDrive relocated to X: via OneDrive Settings
+  All user profiles shell folders → X:\Users\{username}\
+
+X: restructure:
+  mkdir -p X:\Users\pheller X:\Users\peterheller
+  mkdir -p X:\TeachMaterials X:\GitRepos X:\OCCAMServer
+  mkdir -p X:\Archives\OldDataFiles-20260408
+  W: TeachMaterials content → X:\TeachMaterials\
+  Z: content → X:\GitRepos\ → Z: retired
+  K: content → X:\Archives\OldDataFiles-20260408\ (read-only)
+  G: VHDX → X:\OCCAMServer\G-CSCI331.vhdx
+  Q: VHDX → X:\OCCAMServer\Q-CSCI381.vhdx
+
+W: Disk 4 VHDX farm provisioned:
+  W:\DBarchives\EC3Database.vhdx     600GB max
+  W:\DBarchives\H-Databases.vhdx
+  W:\DBarchives\K-OldDataFiles.vhdx
+  W:\DBarchives\CSCI331-backup.vhdx
+  W:\DBarchives\HomeDatabase.vhdx
+  W:\DBarchives\winSrvr2012\
+  W:\RustFS\rustfs-data.vhdx         TEMPORARY
+  W:\PostgreSQL\postgres-data.vhdx   TEMPORARY
+  W:\Nessie\nessie-data.vhdx         TEMPORARY
+
+Y: decommissioned — letter freed
+
+POC live on FreedomTower:
+  RustFS Docker container → -v W:\RustFS\data:/data
+  PostgreSQL 18 Docker container → -v W:\PostgreSQL\data:/var/lib/postgresql/data
+  Nessie Docker container → -v W:\Nessie\data:/nessie-data
+  aces-iceberg bucket created in RustFS
+  DuckDB iceberg_scan() verified
+  rclone [dropbox] [synology] [rustfs] confirmed operational</pre>
+<h4>Mid Term — S3Bucket + TheBeast + Teacher Commissioned</h4>
+<p>Target: opportunistic — as nodes receive their fixes, no hard date</p>
+<pre>S3Bucket node:
+  Prerequisite: sysprep SID fix → unique SID
+  Actions:
+    Set hostname to S3Bucket
+    Join Tailscale mesh
+    mom-scripts deployed via X: hub
+    User profile relocation → X:\Users\{username}\
+    RustFS PRIMARY deployed — dedicated node, no GPU competition
+    Golden template imported from FreedomTower E:\FreedomTower\WSL\Templates\
+    FreedomTower RustFS data migrated to S3Bucket via rclone
+    FreedomTower W:\RustFS\rustfs-data.vhdx decommissioned
+    rclone [rustfs] endpoint updated to S3Bucket Tailscale IP
+    Disk 4 I/O pressure on FreedomTower relieved
+
+TheBeast node:
+  Prerequisite: git clone mom-scripts (in Session E hardware lane)
+  Actions:
+    User profile relocation → X:\Users\{username}\
+    PostgreSQL 18 migrated from FreedomTower → TheBeast local disk
+    pgduckdb + pgvector + pgwal stack live on TheBeast
+    FreedomTower W:\PostgreSQL\postgres-data.vhdx decommissioned
+
+Teacher node:
+  Prerequisite: git clone mom-scripts (in Session E hardware lane)
+  Actions:
+    Nessie catalog migrated from FreedomTower → Teacher
+    Always-on alongside existing Ollama cloud gateway
+    FreedomTower W:\Nessie\nessie-data.vhdx decommissioned
+
+FreedomTower Disk 4 post-migration:
+  W:\DBarchives\ only — archive VHDXs on demand
+  No constant write pressure
+  Backup obligation reduced to on-demand archive operations</pre>
+<h4>Long Term — Full Distributed Cluster</h4>
+<p>Target: as MiniBeast BIOS fix is resolved and cluster evolves</p>
+<pre>Cluster role assignments (locked):
+  FreedomTower   ACES orchestrator · DuckDB analytics · archive hub
+  TheBeast       PostgreSQL 18 primary · heavy GPU compute
+  Teacher        Nessie · Ollama cloud gateway · always-on services
+  S3Bucket       RustFS primary · dedicated S3 object store
+  MiniBeast      Secondary pipeline · inference
+  DS920+         Synology backup target · git bare repos
+
+RustFS distributed cluster (future ADR):
+  S3Bucket = primary writer — dedicated node
+  FreedomTower + TheBeast = peer nodes
+  DS920+ = replication target
+  MotherDuck = cloud federation hub (per ADR-039)
+
+Production database HA (future ADR):
+  PostgreSQL primary → TheBeast
+  PostgreSQL replica → FreedomTower or MiniBeast
+  DuckLake spokes → per D4 domain
+  MotherDuck hub → cloud federation</pre>
+<h3>Part 6 — Node Commissioning Checklist (Standard)</h3>
+<p>Every node — new or restored — follows this sequence before</p>
+<p>being declared production-ready and joining the Tailscale mesh:</p>
+<pre>[ ] sysprep SID fix (if cloned node)
+[ ] Hostname set to canonical cluster name
+[ ] mkdir -p X:\Users\{username}\ for all profiles
+[ ] All shell folders relocated C: → X: (Properties Location tab)
+[ ] OneDrive relocated via OneDrive Settings (not Location tab)
+[ ] AppData confirmed on C: — never touched
+[ ] mom-scripts deployed from X: hub
+[ ] rclone.conf deployed — all four remotes verified
+[ ] rclone [dropbox] lsd — confirmed
+[ ] rclone [synology] lsd — confirmed
+[ ] rclone [rustfs] lsd — confirmed
+[ ] WSL golden template imported from E:\FreedomTower\WSL\Templates\
+[ ] Tailscale join
+[ ] Node declared production-ready</pre>
+<h3>Part 7 — Node Decommissioning Checklist (Standard)</h3>
+<pre>[ ] X:\Users\{username}\ backed up to synology:/volume1/node-archive/{hostname}/
+[ ] All active Docker volumes backed up to Synology
+[ ] Node removed from Tailscale mesh
+[ ] mom-scripts node entry removed
+[ ] rclone [rustfs] peer list updated
+[ ] Node declared decommissioned</pre>
+<h2>Consequences</h2>
+<h3>Positive</h3>
+<p style="margin-left:1rem">• C: is truly OS-only — page file, AppData, Windows system only</p>
+<p style="margin-left:1rem">• All user data is RAID 1 protected on X: — no single point of failure</p>
+<p style="margin-left:1rem">• Disk 4 is a governed VHDX farm — same ADR-033 pattern, consistent</p>
+<p style="margin-left:1rem">• Dropbox eliminated as a native sync client — rclone replaces it</p>
+<p style="margin-left:1rem">• Node commissioning and decommissioning are deterministic checklists</p>
+<p style="margin-left:1rem">• Phased migration respects POC timeline — nothing blocked</p>
+<p style="margin-left:1rem">• S3Bucket as dedicated RustFS node eliminates I/O contention</p>
+<p style="margin-left:1rem">• TheBeast as PostgreSQL host gives dedicated I/O headroom</p>
+<p style="margin-left:1rem">• Teacher as Nessie host is always-on at minimal resource cost</p>
+<h3>Negative</h3>
+<p style="margin-left:1rem">• FreedomTower Disk 4 carries temporary active workloads until mid term</p>
+<p style="margin-left:1rem">• Disk 4 backup discipline must be maintained manually until ADR-035</p>
+<p>  nightly cron is extended to cover W: volumes</p>
+<p style="margin-left:1rem">• S3Bucket, TheBeast, and Teacher commissioning are opportunistic —</p>
+<p>  no hard timeline means FreedomTower POC state persists indefinitely</p>
+<p>  if nodes are not prioritized</p>
+<h3>Neutral</h3>
+<p style="margin-left:1rem">• WinSrvr2012 VHDXs relocated to W:\DBarchives\ — legacy, on demand</p>
+<p style="margin-left:1rem">• EC3Database.mdf wrapped in 600GB VHDX — museum-grade IP, preserved</p>
+<p style="margin-left:1rem">• SharePoint rclone remote reserved but inactive — zero cost placeholder</p>
+<p style="margin-left:1rem">• Z: retired as a drive letter — function preserved under X:\GitRepos\</p>
+<p style="margin-left:1rem">• Y: freed as a drive letter — available for future assignment if needed</p>
+<h2>Related ADRs</h2>
+<p style="margin-left:1rem">• ADR-033 — Disk4 DBVolMounts VHDX Architecture (VHDX governance pattern)</p>
+<p style="margin-left:1rem">• ADR-034 — Windows User Profile Relocation X Drive (profile relocation method)</p>
+<p style="margin-left:1rem">• ADR-035 — Nightly 3AM Cron Job (future backup automation)</p>
+<p style="margin-left:1rem">• ADR-036 — Rclone Universal Storage Layer (remote definitions)</p>
+<p style="margin-left:1rem">• ADR-037 — Symlink Strategy (WSL symlink governance)</p>
+<p style="margin-left:1rem">• ADR-038 — RustFS Local S3 Hub (RustFS architecture)</p>
+<p style="margin-left:1rem">• ADR-039 — DuckLake/DuckDB/MotherDuck POC (MotherDuck federation)</p>
+<p style="margin-left:1rem">• ADR-042 — WSL↔WIN11 Interoperability Contract (mkdir -p rule)</p>
+<p style="margin-left:1rem">• ADR-044 — DuckDB/Iceberg/RustFS Stack (POC 2 stack)</p>
+<p>*© 2026 Peter Heller / Mind Over Metadata LLC*</p>
+<p>*ADR-046 — FreedomTower Disk Topology and Phased Cluster Migration Governance*</p>
+<p>*FreedomTower — Session E — 2026-04-13*</p>
+<p># ADR-046 Amendment 1 — E: Drive Root Restructure</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key"><strong>Amendment</strong></td>
+<td>ADR-046 Amendment 1</td>
+</tr>
+<tr>
+<td class="key"><strong>Title</strong></td>
+<td>E: Drive Root Restructure — Three-Root Topology + WSL/E: Split Rule</td>
+</tr>
+<tr>
+<td class="key"><strong>Status</strong></td>
+<td>ACCEPTED</td>
+</tr>
+<tr>
+<td class="key"><strong>Date</strong></td>
+<td>2026-04-16</td>
+</tr>
+<tr>
+<td class="key"><strong>Session</strong></td>
+<td>Session A — 2026-04-16</td>
+</tr>
+<tr>
+<td class="key"><strong>Author</strong></td>
+<td>Peter Heller / Mind Over Metadata LLC</td>
+</tr>
+<tr>
+<td class="key"><strong>Node</strong></td>
+<td>FREEDOMTOWER</td>
+</tr>
+<tr>
+<td class="key"><strong>Amends</strong></td>
+<td>ADR-046 § Part 1 — E: DataRaid1 topology</td>
+</tr>
+<tr>
+<td class="key"><strong>Related</strong></td>
+<td>ADR-037 (Symlink Strategy), ADR-042 (WSL↔WIN11 Interoperability)</td>
+</tr>
+</table></div>
+<h2>Context</h2>
+<p>ADR-046 original defined E: (DataRaid1) as containing Obsidian vaults</p>
+<p>and Projects. As the cluster evolved, additional WSL runtime data</p>
+<p>accumulated at the E: root without governance:</p>
+<p style="margin-left:1rem">• <code>E:\Go\</code> — Go module cache (WSL runtime data)</p>
+<p style="margin-left:1rem">• <code>E:\Fabric\</code> — Fabric patterns and patterns_custom (WSL text data)</p>
+<p style="margin-left:1rem">• <code>E:\LLMs\</code> — Ollama model weights and manifests (WSL AI data)</p>
+<p style="margin-left:1rem">• <code>E:\nvm\</code> — empty stub (orphaned)</p>
+<p style="margin-left:1rem">• <code>E:\actions-runner\</code> — GitHub Actions Linux runner data</p>
+<p style="margin-left:1rem">• <code>E:\FreedomTower\</code> — node-specific infrastructure data</p>
+<p style="margin-left:1rem">• <code>E:\WSL\</code> — WSL VHDX backups</p>
+<p style="margin-left:1rem">• <code>E:\VHDX\</code> — Docker VHDXs</p>
+<p>The E: root had nine ungoverned folders with no topic organization.</p>
+<p>This amendment establishes a three-root topology and a formal</p>
+<p>WSL/E: split rule governing what lives where.</p>
+<h2>Decision</h2>
+<h3>Part 1 — E: Three-Root Topology</h3>
+<p>E: root SHALL contain exactly three topic roots:</p>
+<pre>E:\
+├── Obsidian\          ← Knowledge management — 8 vaults (unchanged)
+├── FreedomTower\      ← Windows infrastructure root
+└── WSLData\           ← WSL runtime data root</pre>
+<p>No other folders at E: root. Any new folder added to E: root</p>
+<p>requires an ADR-046 amendment to classify it into one of these</p>
+<p>three roots or justify a fourth.</p>
+<h3>Part 2 — FreedomTower\ Contents</h3>
+<p><code>E:\FreedomTower\</code> owns Windows infrastructure data for the</p>
+<p>FreedomTower node. Contents:</p>
+<pre>E:\FreedomTower\
+├── FreedomTower\      ← node-specific data (from E:\FreedomTower\)
+├── WSL\               ← WSL VHDX backups (from E:\WSL\)
+└── VHDX\              ← Docker VHDXs (from E:\VHDX\)</pre>
+<p><strong>VHDX inventory at time of amendment:</strong></p>
+<pre>E:\FreedomTower\VHDX\Docker\
+  container-volumes.vhdx    205GB
+  docker-data.vhdx          205GB
+  portainer-data.vhdx       205GB
+  mount-docker-vhdx.ps1
+
+E:\FreedomTower\WSL\Backups\
+  docker_data-pre-compact-20260407.vhdx    281GB
+  Ubuntu22.04-clean-20260408-1712.vhdx      36GB
+  Ubuntu22.04-pre-clean-20260407-0617.vhdx 216GB
+  Ubuntu22.04-pre-migration-20260406-1442.vhdx 216GB</pre>
+<h3>Part 3 — WSLData\ Contents</h3>
+<p><code>E:\WSLData\</code> owns data and content artifacts for WSL runtimes.</p>
+<p>Executables, binaries, and runtime configs stay inside WSL ext4.</p>
+<p>E: is the persistence and backup layer — not the runtime layer.</p>
+<pre>E:\WSLData\
+├── Projects\          ← ClaudeCode, Gemini (git repos + project data)
+├── Go\                ← Go module cache/data (from E:\Go\)
+├── Fabric\            ← patterns\, patterns_custom\ (from E:\Fabric\)
+├── LLMs\              ← Ollama model weights + manifests (from E:\LLMs\)
+└── actions-runner\    ← GitHub Actions Linux runner data (from E:\actions-runner\)</pre>
+<h3>Part 4 — WSL/E: Split Rule</h3>
+<div class="info-box"><strong>Executables stay in WSL ext4. Data and text live on E:.</strong></div>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Layer</th>
+<th>Lives in</th>
+<th>Rationale</th>
+</tr>
+<tr>
+<td class="key">Binaries, runtimes, configs</td>
+<td>WSL ext4 (<code>~/</code>, <code>~/.config/</code>)</td>
+<td>Fast path — no NTFS overhead</td>
+</tr>
+<tr>
+<td class="key">Module caches, model weights</td>
+<td><code>E:\WSLData\</code></td>
+<td>Persistent, Acronis-backed, survives WSL rebuild</td>
+</tr>
+<tr>
+<td class="key">Pattern files, project text</td>
+<td><code>E:\WSLData\</code></td>
+<td>Human-readable, git-trackable, portable</td>
+</tr>
+<tr>
+<td class="key">WSL VHDX backups</td>
+<td><code>E:\FreedomTower\WSL\</code></td>
+<td>Infrastructure — node-scoped</td>
+</tr>
+<tr>
+<td class="key">Docker VHDXs</td>
+<td><code>E:\FreedomTower\VHDX\</code></td>
+<td>Infrastructure — node-scoped</td>
+</tr>
+</table></div>
+<p><strong>Applied per tool:</strong></p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Tool</th>
+<th>WSL (executable)</th>
+<th>E:\WSLData\ (data)</th>
+</tr>
+<tr>
+<td class="key">Go</td>
+<td><code>~/go/bin</code>, <code>/usr/local/go/</code></td>
+<td><code>Go\</code> — module cache, pkg</td>
+</tr>
+<tr>
+<td class="key">Fabric</td>
+<td><code>~/.config/fabric</code>, binary in PATH</td>
+<td><code>Fabric\patterns\</code>, <code>Fabric\patterns_custom\</code></td>
+</tr>
+<tr>
+<td class="key">Ollama</td>
+<td><code>/usr/bin/ollama</code>, <code>~/.ollama/</code></td>
+<td><code>LLMs\ollama\models\</code></td>
+</tr>
+<tr>
+<td class="key">Claude Code</td>
+<td><code>~/.claude</code>, binary in PATH</td>
+<td><code>Projects\ClaudeCode\</code></td>
+</tr>
+<tr>
+<td class="key">Gemini</td>
+<td><code>~/.gemini</code>, binary in PATH</td>
+<td><code>Projects\Gemini\</code></td>
+</tr>
+<tr>
+<td class="key">nvm</td>
+<td><code>~/.nvm</code> (fully WSL-native)</td>
+<td>none — E:\nvm\ stub deleted</td>
+</tr>
+<tr>
+<td class="key">actions-runner</td>
+<td>service binary in WSL</td>
+<td><code>actions-runner\</code> — _work\, credentials</td>
+</tr>
+</table></div>
+<h3>Part 5 — Symlink Registry (Amendment to ADR-037)</h3>
+<p>All active WSL symlinks from <code>~</code> to E: after restructure:</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Symlink</th>
+<th>Target (post-restructure)</th>
+<th>Purpose</th>
+</tr>
+<tr>
+<td class="key"><code>~/mom-scripts</code></td>
+<td><code>/mnt/x/MindOverMetadata-Scripts/mom-scripts/</code></td>
+<td>MOM scripts hub</td>
+</tr>
+<tr>
+<td class="key"><code>~/vaults</code></td>
+<td><code>/mnt/e/Obsidian/</code></td>
+<td>All 8 vaults shorthand</td>
+</tr>
+<tr>
+<td class="key"><code>~/mom-vault</code></td>
+<td><code>/mnt/e/Obsidian/Mind-Over-Metadata/</code></td>
+<td>Primary vault shorthand</td>
+</tr>
+<tr>
+<td class="key"><code>~/docs</code></td>
+<td><code>/mnt/x/MindOverMetadata-Docs/</code></td>
+<td>MOM docs hub</td>
+</tr>
+<tr>
+<td class="key"><code>~/w</code></td>
+<td><code>/mnt/w/</code></td>
+<td>DBVolMounts drive</td>
+</tr>
+<tr>
+<td class="key"><code>~/q</code></td>
+<td><code>/mnt/q/</code></td>
+<td>Teaching drive</td>
+</tr>
+<tr>
+<td class="key"><code>~/go</code></td>
+<td><code>/mnt/e/WSLData/Go/go</code></td>
+<td>Go data (updated path)</td>
+</tr>
+<tr>
+<td class="key"><code>~/ClaudeCode</code></td>
+<td><code>/mnt/e/WSLData/Projects/ClaudeCode</code></td>
+<td>Claude Code project (updated path)</td>
+</tr>
+<tr>
+<td class="key"><code>~/Gemini</code></td>
+<td><code>/mnt/e/WSLData/Projects/Gemini</code></td>
+<td>Gemini project (updated path)</td>
+</tr>
+<tr>
+<td class="key"><code>~/actions-runner</code></td>
+<td><code>/mnt/e/WSLData/actions-runner</code></td>
+<td>Actions runner (updated path)</td>
+</tr>
+</table></div>
+<p><strong>Removed symlinks:</strong></p>
+<p style="margin-left:1rem">• <code>~/Codex</code> — removed (project retired)</p>
+<p><strong>Missing symlinks to create post-restructure:</strong></p>
+<p style="margin-left:1rem">• <code>~/mom-scripts</code>, <code>~/vaults</code>, <code>~/mom-vault</code>, <code>~/docs</code>, <code>~/w</code>, <code>~/q</code></p>
+<p>  were in the bootstrap spec but not present in live inventory —</p>
+<p>  must be created as part of restructure execution.</p>
+<h3>Part 6 — nvm Disposition</h3>
+<p><code>E:\nvm\</code> is an empty stub. <code>~/.nvm</code> is fully WSL-native (inside</p>
+<p>ext4). No E: data exists for nvm. <code>E:\nvm\</code> SHALL be deleted as</p>
+<p>part of restructure execution.</p>
+<h2>Execution Sequence</h2>
+<p>Run in WSL as a single sequence. **Prerequisite: E: Acronis backup</p>
+<p>job must be configured (Sprint 4) before executing moves.**</p>
+<pre>&lt;a id=&quot;step-1-create-three-root-structure&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 1 — Create three-root structure</span>
+mkdir -p &quot;/mnt/e/FreedomTower/FreedomTower&quot;
+mkdir -p &quot;/mnt/e/FreedomTower/WSL&quot;
+mkdir -p &quot;/mnt/e/FreedomTower/VHDX&quot;
+mkdir -p &quot;/mnt/e/WSLData/Projects&quot;
+mkdir -p &quot;/mnt/e/WSLData/Go&quot;
+mkdir -p &quot;/mnt/e/WSLData/Fabric&quot;
+mkdir -p &quot;/mnt/e/WSLData/LLMs&quot;
+mkdir -p &quot;/mnt/e/WSLData/actions-runner&quot;
+
+&lt;a id=&quot;step-2-move-infrastructure-into-freedomtower&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 2 — Move infrastructure into FreedomTower\</span>
+mv &quot;/mnt/e/WSL/&quot;*    &quot;/mnt/e/FreedomTower/WSL/&quot;
+mv &quot;/mnt/e/VHDX/&quot;*   &quot;/mnt/e/FreedomTower/VHDX/&quot;
+&lt;a id=&quot;freedomtower-node-data-confirm-contents-before-moving&quot;&gt;&lt;/a&gt;
+<span class="cm"># FreedomTower\ node data — confirm contents before moving</span>
+&lt;a id=&quot;mv-mntefreedomtower-node-data-mntefreedomtowerfreedomtower&quot;&gt;&lt;/a&gt;
+<span class="cm"># mv &quot;/mnt/e/FreedomTower-node-data/&quot;* &quot;/mnt/e/FreedomTower/FreedomTower/&quot;</span>
+
+&lt;a id=&quot;step-3-move-wsl-runtime-data-into-wsldata&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 3 — Move WSL runtime data into WSLData\</span>
+mv &quot;/mnt/e/Go/&quot;*             &quot;/mnt/e/WSLData/Go/&quot;
+mv &quot;/mnt/e/Fabric/&quot;*         &quot;/mnt/e/WSLData/Fabric/&quot;
+mv &quot;/mnt/e/LLMs/&quot;*           &quot;/mnt/e/WSLData/LLMs/&quot;
+mv &quot;/mnt/e/actions-runner/&quot;* &quot;/mnt/e/WSLData/actions-runner/&quot;
+mv &quot;/mnt/e/Projects/&quot;*       &quot;/mnt/e/WSLData/Projects/&quot;
+
+&lt;a id=&quot;step-4-delete-empty-stubs&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 4 — Delete empty stubs</span>
+rmdir &quot;/mnt/e/nvm&quot;
+rmdir &quot;/mnt/e/Go&quot;
+rmdir &quot;/mnt/e/Fabric&quot;
+rmdir &quot;/mnt/e/LLMs&quot;
+rmdir &quot;/mnt/e/actions-runner&quot;
+rmdir &quot;/mnt/e/Projects&quot;
+rmdir &quot;/mnt/e/WSL&quot;
+rmdir &quot;/mnt/e/VHDX&quot;
+
+&lt;a id=&quot;step-5-remove-retired-codex-symlink&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 5 — Remove retired Codex symlink</span>
+rm ~/Codex
+
+&lt;a id=&quot;step-6-update-symlinks-to-new-paths&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 6 — Update symlinks to new paths</span>
+ln -sfn &quot;/mnt/e/WSLData/Go/go&quot;                    ~/go
+ln -sfn &quot;/mnt/e/WSLData/Projects/ClaudeCode&quot;       ~/ClaudeCode
+ln -sfn &quot;/mnt/e/WSLData/Projects/Gemini&quot;           ~/Gemini
+ln -sfn &quot;/mnt/e/WSLData/actions-runner&quot;            ~/actions-runner
+
+&lt;a id=&quot;step-7-create-missing-canonical-symlinks&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 7 — Create missing canonical symlinks</span>
+ln -sfn &quot;/mnt/x/MindOverMetadata-Scripts/mom-scripts/&quot; ~/mom-scripts
+ln -sfn &quot;/mnt/e/Obsidian/&quot;                             ~/vaults
+ln -sfn &quot;/mnt/e/Obsidian/Mind-Over-Metadata/&quot;          ~/mom-vault
+ln -sfn &quot;/mnt/x/MindOverMetadata-Docs/&quot;                ~/docs
+ln -sfn &quot;/mnt/w/&quot;                                      ~/w
+ln -sfn &quot;/mnt/q/&quot;                                      ~/q
+
+&lt;a id=&quot;step-8-verify&quot;&gt;&lt;/a&gt;
+<span class="cm"># Step 8 — Verify</span>
+ls -la ~/ | grep &quot;^l&quot;
+ls /mnt/e/</pre>
+<h2>Consequences</h2>
+<p style="margin-left:1rem">• E: root is clean — three topic roots, no ungoverned folders</p>
+<p style="margin-left:1rem">• WSL runtime data survives WSL rebuilds (on E:, Acronis-backed)</p>
+<p style="margin-left:1rem">• Executables stay on the fast path inside WSL ext4</p>
+<p style="margin-left:1rem">• All symlinks are current, documented, and registry-locked</p>
+<p style="margin-left:1rem">• <code>nvm</code> stub eliminated</p>
+<p style="margin-left:1rem">• <code>Codex</code> symlink retired</p>
+<p style="margin-left:1rem">• Bootstrap script (<code>install-mom-scripts.sh</code>) must be updated to</p>
+<p>  reflect new symlink targets (WSLData paths)</p>
+<h2>Prerequisite Gate</h2>
+<div class="info-box">**Do not execute the move sequence until E: Acronis backup job</div>
+<div class="info-box">is active and has completed at least one successful run (Sprint 4</div>
+<div class="info-box">first priority).**</div>
+<h2>Related ADRs</h2>
+<p style="margin-left:1rem">• ADR-046 original — FreedomTower Disk Topology</p>
+<p style="margin-left:1rem">• ADR-037 — Symlink Strategy (symlink registry superseded by Part 5)</p>
+<p style="margin-left:1rem">• ADR-042 — WSL↔WIN11 Interoperability Contract</p>
+<p style="margin-left:1rem">• ADR-047 — Backup Governance</p>
+<p style="margin-left:1rem">• ADR-048 — MOM Scripts Taxonomy</p>
+<p>*© 2026 Peter Heller / Mind Over Metadata LLC*</p>
+<p>*ADR-046 Amendment 1 — E: Drive Root Restructure*</p>
+<p>*FreedomTower — Session A — 2026-04-16*</p>
+</section>
+
+<section class="section" id="s-adr047">
+  <div class="color-strip cs-syn"></div>
+  <div class="section-header">
+    <h1>ADR-047 — Backup Governance</h1>
+    <p>Appendix E: Full verbatim text</p>
+  </div>
+  <p>The full text of ADR-047 follows verbatim. This ADR establishes backup governance across FreedomTower and the cluster, superseded in part by ADR-060.</p>
+<p># ADR-047 — Backup Governance — FreedomTower + Cluster-Wide Policy</p>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+<tr>
+<td class="key"><strong>ADR Number</strong></td>
+<td>ADR-047</td>
+</tr>
+<tr>
+<td class="key"><strong>Title</strong></td>
+<td>Backup Governance — FreedomTower + Cluster-Wide Policy</td>
+</tr>
+<tr>
+<td class="key"><strong>Status</strong></td>
+<td>ACCEPTED</td>
+</tr>
+<tr>
+<td class="key"><strong>Date</strong></td>
+<td>2026-04-13</td>
+</tr>
+<tr>
+<td class="key"><strong>Session</strong></td>
+<td>Session-F-20260413</td>
+</tr>
+<tr>
+<td class="key"><strong>Author</strong></td>
+<td>Peter Heller / Mind Over Metadata LLC</td>
+</tr>
+<tr>
+<td class="key"><strong>Node</strong></td>
+<td>FREEDOMTOWER (primary); cluster-wide policy</td>
+</tr>
+<tr>
+<td class="key"><strong>Vault</strong></td>
+<td>Architectural-Decision-Records</td>
+</tr>
+<tr>
+<td class="key"><strong>Supersedes</strong></td>
+<td>None</td>
+</tr>
+<tr>
+<td class="key"><strong>Related</strong></td>
+<td>ADR-033, ADR-036, ADR-038, ADR-042, ADR-046, ADR-048</td>
+</tr>
+</table></div>
+<h2>Context</h2>
+<p>FreedomTower Acronis backup configuration accumulated without formal</p>
+<p>governance: C: used incremental/custom mode rather than Full, backup</p>
+<p>artifacts landed at the Synology root without node-scoped structure,</p>
+<p>and no cluster-wide commissioning pattern existed for backup.</p>
+<p>ADR-046 locked FreedomTower disk topology and phased cluster migration.</p>
+<p>Backup governance is the missing complement — how disks are protected,</p>
+<p>where artifacts live, and the repeatable commissioning pattern for each</p>
+<p>new node joining the cluster.</p>
+<p>The Synology DS920+ (192.168.1.242, port 2200) is the designated backup</p>
+<p>target for all cluster nodes. No off-site cold tier exists yet — deferred</p>
+<p>to a future ADR pending RustFS operational status.</p>
+<h2>Decision</h2>
+<h3>1. Acronis Backup Method — C: Drive</h3>
+<p>Acronis backup method for C: is changed from incremental/custom to</p>
+<p>Full weekly. C: is OS only (ADR-046) — small, stable, rarely written.</p>
+<p>Incremental chains on an OS-only drive add restore complexity with</p>
+<p>negligible space savings. Full weekly produces a single self-contained</p>
+<p>recovery artifact per cycle.</p>
+<p>On-demand bootable backups are created before any major system change:</p>
+<p>driver updates, Windows feature updates, profile migrations.</p>
+<h3>2. Synology Backup Folder Structure</h3>
+<p>All backup artifacts on the Synology NAS are organized under a</p>
+<p>node-scoped folder hierarchy:</p>
+<p>    /volume1/acronis-backups/</p>
+<p>      FreedomTower/</p>
+<p>        C-Drive/       &lt;- Acronis Full weekly — OS volume</p>
+<p>        D-Drive/       &lt;- Docker WSL2/VHDX — on demand</p>
+<p>        W-Drive/       &lt;- VHDX farm — on demand</p>
+<p>        Private/       &lt;- sensitive artifacts — on demand</p>
+<p>      TheBeast/</p>
+<p>        C-Drive/</p>
+<p>      MiniBeast/</p>
+<p>        C-Drive/</p>
+<p>      Teacher/</p>
+<p>        C-Drive/</p>
+<p>      S3Bucket/</p>
+<p>        C-Drive/</p>
+<p>Each node folder is created at commissioning time. No cross-node</p>
+<p>artifacts share a folder. The flat root layout that preceded this</p>
+<p>ADR is retired.</p>
+<h3>3. Acronis Destination Update</h3>
+<p>Acronis destination for FreedomTower C: is updated to point to</p>
+<p>FreedomTower\C-Drive\ within the restructured hierarchy. Existing</p>
+<p>.tibx files at the old root location are moved into the new</p>
+<p>node-scoped folder before the next scheduled backup runs.</p>
+<h3>4. Cluster Commissioning Pattern — Backup</h3>
+<p>When a new node joins the cluster:</p>
+<p style="margin-left:1rem">1. Create /volume1/acronis-backups/&lt;NodeName&gt;/C-Drive/ on Synology</p>
+<p style="margin-left:1rem">2. Install Acronis on the node</p>
+<p style="margin-left:1rem">3. Configure destination -&gt; Synology &lt;NodeName&gt;\C-Drive\</p>
+<p style="margin-left:1rem">4. Set backup method -&gt; Full weekly</p>
+<p style="margin-left:1rem">5. Run first Full backup manually — verify restore point appears</p>
+<p style="margin-left:1rem">6. Document node backup status in ADR-046 cluster state table</p>
+<h3>5. rclone as Supplemental Backup Transport</h3>
+<p>rclone (ADR-036) supplements Acronis for file-level backup of</p>
+<p>non-system artifacts: Obsidian vault snapshots, ACES pipeline</p>
+<p>outputs, VHDX farm contents. rclone is not a replacement for</p>
+<p>Acronis bootable backups.</p>
+<p>rclone jobs run from WSL using canonical conf at</p>
+<p>~/.config/rclone/rclone.conf -&gt; symlink to</p>
+<p>X:\MindOverMetadata-Scripts\wsl\rclone\rclone.conf (ADR-048).</p>
+<h3>6. Off-Site Tier — Deferred</h3>
+<p>Off-site cold backup (Backblaze B2, Wasabi, or equivalent) is</p>
+<p>deferred to a future ADR once RustFS (ADR-038) is operational</p>
+<p>as the egress point for off-site replication.</p>
+<h2>Consequences</h2>
+<p>Positive:</p>
+<p style="margin-left:1rem">• Full weekly C: backup is a single self-contained recovery artifact</p>
+<p style="margin-left:1rem">• Node-scoped hierarchy scales to all 5 cluster nodes cleanly</p>
+<p style="margin-left:1rem">• Commissioning checklist is repeatable and auditable</p>
+<p style="margin-left:1rem">• rclone and Acronis have clearly separated responsibilities</p>
+<p>Negative / Trade-offs:</p>
+<p style="margin-left:1rem">• Full weekly consumes more Synology space than incremental —</p>
+<p>  acceptable given DS920+ capacity and C: OS-only scope</p>
+<p style="margin-left:1rem">• Off-site gap remains open until RustFS deployed</p>
+<p>Pending actions (Session F):</p>
+<p style="margin-left:1rem">☐ Restructure /volume1/acronis-backups/ -&gt; FreedomTower\C-Drive\</p>
+<p style="margin-left:1rem">☐ Move existing tibx files into new node-scoped folder</p>
+<p style="margin-left:1rem">☐ Update Acronis destination -&gt; FreedomTower\C-Drive\</p>
+<p style="margin-left:1rem">☐ Change Acronis method -&gt; Full weekly</p>
+<p style="margin-left:1rem">☐ Verify next backup writes to new destination</p>
+<h2>Revision History</h2>
+<div class="card" style="padding:0;overflow:hidden"><table>
+<tr>
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Notes</th>
+</tr>
+<tr>
+<td class="key">1.0</td>
+<td>2026-04-13</td>
+<td>Peter Heller</td>
+<td>Initial — Session F</td>
+</tr>
+</table></div>
+</section>
+</main>
+</div>
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
