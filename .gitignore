@@ -13,3 +13,4 @@ data/transactions.csv
 data/*.csv
 python_fundamentals_fb.egg-info/
 exports/
+*.egg-info/
